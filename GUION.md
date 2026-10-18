@@ -275,7 +275,7 @@ def build_index_maps(train: pd.DataFrame) -> IndexMaps:
     ...  # TODO: IDs únicos y ordenados de train y los dos diccionarios
 
 def encode_ratings(df: pd.DataFrame, maps: IndexMaps):
-    ...  # TODO: devuelve (users, items, ratings): tres arrays de longitud N
+    ...  # TODO: devuelve (users, movies, ratings): tres arrays de longitud N
          # TODO: un ID que no esté en los mapas da un error que nombra ese ID
 ```
 
@@ -380,14 +380,14 @@ No redondees predicciones antes de medir: un modelo puede predecir 3,72 aunque l
 
 ```python
 class GlobalMean:
-    def __init__(self, n_users: int, n_items: int): ...
-    def fit(self, users, items, ratings): ...     # TODO
-    def predict(self, users, items): ...          # TODO: array de forma (N,)
+    def __init__(self, n_users: int, n_movies: int): ...
+    def fit(self, users, movies, ratings): ...     # TODO
+    def predict(self, users, movies): ...          # TODO: array de forma (N,)
 ```
 
 1. `GlobalMean`: siempre la media de train.
 2. `UserMean`: la media del usuario en train.
-3. `BiasBaseline(reg_item, reg_user)`: $\mu + b_u + b_i$.
+3. `BiasBaseline(reg_movie, reg_user)`: $\mu + b_u + b_i$.
 
 **En papel, antes de programar.** Con $\mu$ fija, el sesgo de la película $i$ resuelve
 
@@ -425,20 +425,20 @@ Desde aquí el objetivo es el **residuo** $\tilde r_{ui} = r_{ui} - (\mu + b_u +
 **Programa.** Escribe primero las formas como comentario:
 
 ```text
-U (user_factors): (n_users, k)
-V (item_factors): (n_items, k)
-users, items:     (N,)
-predicciones:     (N,)
+U (user_factors):  (n_users, k)
+V (movie_factors): (n_movies, k)
+users, movies:     (N,)
+predicciones:      (N,)
 ```
 
 En `lowrank.py`:
 
 ```python
-def predict_observed(user_factors, item_factors, users, items) -> np.ndarray:
+def predict_observed(user_factors, movie_factors, users, movies) -> np.ndarray:
     ...  # TODO: U[u] · V[i] para cada par, forma (N,). Prohibido construir U @ V.T
 
-def to_dense(users, items, values, shape) -> np.ndarray:
-    ...  # TODO: matriz de ceros con `values` en las posiciones (users, items)
+def to_dense(users, movies, values, shape) -> np.ndarray:
+    ...  # TODO: matriz de ceros con `values` en las posiciones (users, movies)
 ```
 
 **Pista.** [Indexado avanzado](https://numpy.org/doc/stable/user/basics.indexing.html#advanced-indexing): `U[users]` tiene forma `(N, k)`.
@@ -498,12 +498,12 @@ $$\lVert M - M_k\rVert_F^2 = \sum_{j > k} \sigma_j^2$$
 ```python
 class TruncatedSVD:
     def __init__(self, k: int): ...
-    def fit(self, users, items, residuals, shape):
+    def fit(self, users, movies, residuals, shape):
         M = ...                       # TODO
         U, s, Vt = ...                # TODO: SVD reducida
         self.user_factors = ...       # TODO: ¿dónde pones s?
-        self.item_factors = ...       # TODO
-    def predict(self, users, items):
+        self.movie_factors = ...       # TODO
+    def predict(self, users, movies):
         ...                           # TODO: usa predict_observed
 ```
 
@@ -551,9 +551,9 @@ Fíjate en que la regularización está dentro de la suma. Lo necesitarás en la
 @dataclass
 class FactorModel:
     user_factors: np.ndarray   # (n_users, k)
-    item_factors: np.ndarray   # (n_items, k)
+    movie_factors: np.ndarray   # (n_movies, k)
 
-def init_factor_model(n_users, n_items, k, scale, rng) -> FactorModel:
+def init_factor_model(n_users, n_movies, k, scale, rng) -> FactorModel:
     ...  # TODO: valores aleatorios pequeños
 
 def sgd_step(model, u, i, residual, lr, reg) -> float:
@@ -561,7 +561,7 @@ def sgd_step(model, u, i, residual, lr, reg) -> float:
     error = ...                        # TODO
     old_user = ...                     # TODO: copia (¿por qué?)
     model.user_factors[u] += ...       # TODO
-    model.item_factors[i] += ...       # TODO: usa old_user
+    model.movie_factors[i] += ...       # TODO: usa old_user
     # TODO: si el error no es finito o se dispara, lanza FloatingPointError
     return error
 ```
@@ -596,10 +596,10 @@ class TrainingHistory:
     train_rmse: list
     val_rmse: list
 
-def train_sgd(train, val, n_users, n_items, k, lr, reg, scale, n_epochs, patience, seed):
-    users, items, residuals = train
+def train_sgd(train, val, n_users, n_movies, k, lr, reg, scale, n_epochs, patience, seed):
+    users, movies, residuals = train
     rng = np.random.default_rng(seed)
-    model = init_factor_model(n_users, n_items, k, scale, rng)
+    model = init_factor_model(n_users, n_movies, k, scale, rng)
     for epoch in range(n_epochs):
         for j in rng.permutation(len(residuals)):
             ...        # TODO: sgd_step de la observación j
@@ -707,7 +707,7 @@ def soft_threshold_svd(X, lam):
     keep = ...               # TODO: solo los valores > 0
     return U[:, keep], s_shrunk[keep], Vt[keep]
 
-def soft_impute(users, items, residuals, shape, lam, max_iter=100, tol=1e-4, warm_start=None):
+def soft_impute(users, movies, residuals, shape, lam, max_iter=100, tol=1e-4, warm_start=None):
     ...  # TODO: rellenar, encoger y comprobar convergencia; devuelve (U, s, Vt)
 ```
 

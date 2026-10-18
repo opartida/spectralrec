@@ -1,7 +1,14 @@
+import numpy as np
 import pandas as pd
 import pytest
 
-from spectralrec.data import load_movies, load_ratings, validate_ratings
+from spectralrec.data import (
+    build_index_maps,
+    encode_ratings,
+    load_movies,
+    load_ratings,
+    validate_ratings,
+)
 
 
 def test_load_ratings(tmp_path):
@@ -181,3 +188,62 @@ def test_validate_ratings_rejects_non_integer_userId_movieId():
     with pytest.raises(ValueError) as excinfo:
         validate_ratings(ratings)
     assert "All movieId values must be integers" in str(excinfo.value)
+
+
+def test_build_index_maps_sorted_movies_and_users():
+    ratings = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30],
+            "movieId": [7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5],
+        }
+    )
+
+    maps = build_index_maps(ratings)
+
+    np.testing.assert_array_equal(maps.user_ids, [10, 30])
+    assert maps.user_to_index == {10: 0, 30: 1}
+
+    np.testing.assert_array_equal(maps.movie_ids, [7, 99])
+    assert maps.movie_to_index == {7: 0, 99: 1}
+
+
+def test_encode_ratings():
+    ratings = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30],
+            "movieId": [7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5],
+        }
+    )
+
+    maps = build_index_maps(ratings)
+    (users, movies, ratings) = encode_ratings(ratings, maps)
+
+    np.testing.assert_array_equal(users, [1, 0, 0, 1])
+    np.testing.assert_array_equal(maps.user_ids[users], [30, 10, 10, 30])
+    np.testing.assert_array_equal(movies, [0, 1, 0, 1])
+    np.testing.assert_array_equal(maps.movie_ids[movies], [7, 99, 7, 99])
+
+
+def test_encode_ratings_userid_without_index():
+    ratings = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30],
+            "movieId": [7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5],
+        }
+    )
+    ratings_test = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30, 27],
+            "movieId": [7, 99, 7, 99, 99],
+            "rating": [4.0, 5.0, 3.5, 5, 5],
+        }
+    )
+    maps = build_index_maps(ratings)
+
+    with pytest.raises(ValueError) as excinfo:
+        encode_ratings(ratings_test, maps)
+    assert "Unknown userId values (not in index maps)" in str(excinfo.value)
+    assert "27" in str(excinfo.value)

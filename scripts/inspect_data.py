@@ -18,44 +18,40 @@ def main():
 
     validate_ratings(ratings)
 
-    usuarios_unicos = ratings["userId"].nunique()
-    peliculas_catalogo = movies["movieId"].nunique()
-    num_valoraciones = ratings["rating"].count()
-    peliculas_valoradas = ratings["movieId"].nunique()
+    n_users = ratings["userId"].nunique()
+    n_catalog_movies = movies["movieId"].nunique()
+    n_ratings = ratings["rating"].count()
+    n_rated_movies = ratings["movieId"].nunique()
 
-    valoraciones_por_usuario = ratings.groupby("userId")["rating"].count()
-    valoraciones_por_pelicula = ratings.groupby("movieId")["rating"].count()
+    ratings_per_user = ratings.groupby("userId")["rating"].count()
+    ratings_per_movie = ratings.groupby("movieId")["rating"].count()
 
-    print(f"Num usuarios: {usuarios_unicos}")
-    print(f"Películas del catálogo: {peliculas_catalogo}")
-    print(f"Num de valoraciones: {num_valoraciones}")
-    print(f"Número de películas valoradas: {peliculas_valoradas}")
+    print(f"Users: {n_users}")
+    print(f"Movies in the catalog: {n_catalog_movies}")
+    print(f"Ratings: {n_ratings}")
+    print(f"Movies with at least one rating: {n_rated_movies}")
 
-    print(
-        f"densidad de valoraciones: {num_valoraciones / (usuarios_unicos * peliculas_valoradas):.2%}"
-    )
+    print(f"Rating density: {n_ratings / (n_users * n_rated_movies):.2%}")
 
-    print(f"Distribución ratings:\n{ratings['rating'].value_counts().sort_index()}")
+    print(f"Rating distribution:\n{ratings['rating'].value_counts().sort_index()}")
 
-    print(f"Mínimo de valoraciones por usuario: {valoraciones_por_usuario.min()}")
+    print(f"Min ratings per user: {ratings_per_user.min()}")
 
-    print(f"Máximo de valoraciones por usuario: {valoraciones_por_usuario.max()}")
+    print(f"Max ratings per user: {ratings_per_user.max()}")
 
-    print(f"Mediana de valoraciones por usuario: {valoraciones_por_usuario.median()}")
+    print(f"Median ratings per user: {ratings_per_user.median()}")
 
-    print(f"Mínimo de valoraciones por película: {valoraciones_por_pelicula.min()}")
-    print(f"Máximo de valoraciones por película: {valoraciones_por_pelicula.max()}")
-    print(f"Mediana de valoraciones por película: {valoraciones_por_pelicula.median()}")
+    print(f"Min ratings per movie: {ratings_per_movie.min()}")
+    print(f"Max ratings per movie: {ratings_per_movie.max()}")
+    print(f"Median ratings per movie: {ratings_per_movie.median()}")
 
-    print(
-        f"Número de películas con una sola valoración: {valoraciones_por_pelicula.eq(1).sum()}"
-    )
+    print(f"Movies with a single rating: {ratings_per_movie.eq(1).sum()}")
 
     fig, ax = plt.subplots(figsize=(12, 5))
-    ax.hist(valoraciones_por_pelicula, bins=50, color="skyblue", edgecolor="black")
-    ax.set_title("Distribución de valoraciones por película")
-    ax.set_xlabel("Número de valoraciones")
-    ax.set_ylabel("Número de películas")
+    ax.hist(ratings_per_movie, bins=50, color="skyblue", edgecolor="black")
+    ax.set_title("Ratings per movie")
+    ax.set_xlabel("Number of ratings")
+    ax.set_ylabel("Number of movies")
     ax.set_yscale("log")
     ax.grid(axis="y")
 

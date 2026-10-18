@@ -14,5 +14,8 @@
             "source.organizeImports": "explicit"
         }
     },
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "editor.inlineSuggest.enabled": false
+
+
 }

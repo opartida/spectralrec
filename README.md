@@ -1,32 +1,29 @@
 # SpectralRec
 
-Proyecto final basado en MIT 18.065.
+Final project based on MIT 18.065.
 
-Objetivo: predecir la valoración que un usuario daría a una película
-utilizando las valoraciones conocidas de otros usuarios y películas.
+Goal: predict the rating a user would give to a movie, using the known
+ratings of other users and movies.
 
 
 
-## Datos
+## Data
 
-Fuente: MovieLens Latest Small (GroupLens). Fecha de descarga: 16/10/2026.
+Source: MovieLens Latest Small (GroupLens). Downloaded on 2026-10-16.
 
-| Estadística | Valor |
+| Statistic | Value |
 |---|---|
-| Número de usuarios | 610 |
-| Número de películas en el catálogo | 9742 |
-| Número de valoraciones | 100836 |
-| Número de películas valoradas | 9724 |
-| Densidad de valoraciones | 1.70% |
-| Mínimo número de valoraciones por usuario | 20 |
-| Máximo número de valoraciones por usuario | 2698 |
-| Mediana de valoraciones por usuario | 70.5 |
-| Mínimo número de valoraciones por película | 1 |
-| Máximo número de valoraciones por película | 329 |
-| Mediana de valoraciones por película | 3.0 |
-| Número de películas con una sola valoración | 3446 |
+| Users | 610 |
+| Movies in the catalog | 9742 |
+| Ratings | 100836 |
+| Movies with at least one rating | 9724 |
+| Rating density | 1.70% |
+| Min ratings per user | 20 |
+| Max ratings per user | 2698 |
+| Median ratings per user | 70.5 |
+| Min ratings per movie | 1 |
+| Max ratings per movie | 329 |
+| Median ratings per movie | 3.0 |
+| Movies with a single rating | 3446 |
 
-![Valoraciones por película](reports/figures/ratings_per_movie.png)
-
-
-
+![Ratings per movie](reports/figures/ratings_per_movie.png)

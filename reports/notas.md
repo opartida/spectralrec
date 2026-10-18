@@ -40,3 +40,9 @@ No, desconocido es que no se calificó esa película. 0 no es posible y seria un
 3. **¿Qué problema tendrá un modelo con las películas de una sola valoración?**
    No se tendrá un indicador robusto. No podemos saber si realmente la película es buena o mala.
 
+## Sesion 5
+
+1. **¿Por qué no usar el userId directamente como número de fila de U?**
+   Porque los ids pueden ser numeros no correlativos y si se usara el id como número de fila la matriz podría ser muy grnade si estos ids son grandes
+2. **¿Qué debería pasar si validación contiene un ID que no estaba en train?**
+   Quitarlo del conjunto y contar cuantas se quitan.

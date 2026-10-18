@@ -1,5 +1,7 @@
+from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 RATING_COLUMNS = {"userId", "movieId", "rating", "timestamp"}
@@ -48,3 +50,47 @@ def validate_ratings(ratings: pd.DataFrame) -> None:
         raise ValueError(
             "Duplicate ratings found for the same user and movie combination"
         )
+
+
+@dataclass
+class IndexMaps:
+    user_ids: np.ndarray  # position -> userId
+    movie_ids: np.ndarray  # position -> movieId
+    user_to_index: dict  # userId -> position
+    movie_to_index: dict  # movieId -> position
+
+
+def build_index_maps(
+    train: pd.DataFrame,
+) -> IndexMaps:
+    user_ids = np.sort(train["userId"].unique())
+    movie_ids = np.sort(train["movieId"].unique())
+    user_to_index = {user_id: idx for idx, user_id in enumerate(user_ids)}
+    movie_to_index = {movie_id: idx for idx, movie_id in enumerate(movie_ids)}
+    return IndexMaps(user_ids, movie_ids, user_to_index, movie_to_index)
+
+
+def encode_ratings(df: pd.DataFrame, maps: IndexMaps):
+    """Encode user/movie IDs into positional indexes.
+
+    Returns a tuple of three arrays: users, movies, ratings, each with length N.
+    Raises a clear error if a row contains an ID not present in the index maps.
+    """
+
+    users = df["userId"].map(maps.user_to_index)
+    movies = df["movieId"].map(maps.movie_to_index)
+    ratings = df["rating"]
+
+    users_without_index = users.isna()
+    movies_without_index = movies.isna()
+
+    if users_without_index.any():
+        raise ValueError(
+            f"Unknown userId values (not in index maps): {df.loc[users_without_index, 'userId'].unique()}"
+        )
+
+    if movies_without_index.any():
+        raise ValueError(
+            f"Unknown movieId values (not in index maps): {df.loc[movies_without_index, 'movieId'].unique()}"
+        )
+    return users.to_numpy(), movies.to_numpy(), ratings.to_numpy()
