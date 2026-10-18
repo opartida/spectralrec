@@ -24,9 +24,19 @@ No, desconocido es que no se calificó esa película. 0 no es posible y seria un
 6. **¿Por qué los CSV no se suben a GitHub?**
    Por que la licencia del repo puede no coincidir con la de los datos
 
-## Sesion 3
+## Sesión 3
 
 1. **¿Por qué los tests no usan el dataset real?**
     Los datos no están en el repo y se necesitarían para ejecutar los tests. Con pocos datos sabes exactemente el resultado esperado del test
 2. **¿Qué ventaja tiene tmp_path frente a una carpeta fija?**
     Se crea especificamente para el test y no hace falta tener ficheros con datos de test en el proyecto. cada test recibe carpeta vacia y asi ningún test puede estropear otro.
+
+## Sesión 4
+
+1. **¿Qué diferencia hay entre películas del catálogo y películas valoradas?**
+   Las películas del catálogo son todas las que hay y que pueden recibir una valoración. Las valoradas son las películas del catálogi que han recibido una valoración. Una película sin valoraciones no aparece en la matriz y el modelo no puede aprender de ella.
+2. **Con la densidad que has medido, ¿cuántas casillas de la matriz conoces de cada 100?**
+   1.70
+3. **¿Qué problema tendrá un modelo con las películas de una sola valoración?**
+   No se tendrá un indicador robusto. No podemos saber si realmente la película es buena o mala.
+

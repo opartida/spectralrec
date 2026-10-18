@@ -232,7 +232,7 @@ Si la comprobación de columnas se repite en las dos funciones, extráela a una 
 **Programa.**
 1. `validate_ratings(df)` en `data.py`: `ValueError` si hay nulos en las columnas necesarias, notas fuera de [0,5, 5] o pares (userId, movieId) repetidos.
 2. `scripts/inspect_data.py`, que imprima:
-   - filas, usuarios, películas del catálogo y películas valoradas;
+   - el número de filas, de usuarios, de películas del catálogo y de películas valoradas;
    - **densidad** = valoraciones / (usuarios × películas valoradas);
    - distribución de `rating`;
    - valoraciones por usuario y por película: mínimo, mediana y máximo;
