@@ -27,3 +27,16 @@ Source: MovieLens Latest Small (GroupLens). Downloaded on 2026-10-16.
 | Movies with a single rating | 3446 |
 
 ![Ratings per movie](reports/figures/ratings_per_movie.png)
+
+## Train / validation / test split
+
+- Random split (not by date): 80% train, 10% validation, 10% test.
+- Split seed: 42
+- Rows removed because their user or movie does not appear in train:
+
+| Set | Rows removed | Share |
+|---|---|---|
+| Validation | 371 | 3.68% |
+| Test | 391 | 3.88% |
+
+Why: The model has no information about a movie (or user) that never appears in train, so it cannot predict its ratings. These are mostly rarely-rated movies, whose few ratings all fell into validation or test. Since rare movies are harder to predict, removing them makes the evaluation optimistic, and it says nothing about how the model performs on new or rare movies.

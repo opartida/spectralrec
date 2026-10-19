@@ -4,9 +4,11 @@ import pytest
 
 from spectralrec.data import (
     build_index_maps,
+    drop_unknown,
     encode_ratings,
     load_movies,
     load_ratings,
+    split_ratings,
     validate_ratings,
 )
 
@@ -247,3 +249,95 @@ def test_encode_ratings_userid_without_index():
         encode_ratings(ratings_test, maps)
     assert "Unknown userId values (not in index maps)" in str(excinfo.value)
     assert "27" in str(excinfo.value)
+
+
+def test_split_ratings():
+    ratings = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30, 20, 20, 21, 21, 22, 22],
+            "movieId": [7, 99, 7, 99, 7, 99, 7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5, 4.0, 5.0, 3.5, 5, 5, 1],
+        }
+    )
+
+    (training, validation, testing) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
+
+    assert len(training.index.intersection(validation.index)) == 0
+    assert len(validation.index.intersection(testing.index)) == 0
+    assert len(training.index.intersection(testing.index)) == 0
+    assert training.shape[0] + validation.shape[0] + testing.shape[0] == 10
+
+
+def test_split_ratings_same_seed():
+    ratings = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30, 20, 20, 21, 21, 22, 22],
+            "movieId": [7, 99, 7, 99, 7, 99, 7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5, 4.0, 5.0, 3.5, 5, 5, 1],
+        }
+    )
+
+    (training1, validation1, testing1) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
+    (training2, validation2, testing2) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
+
+    pd.testing.assert_frame_equal(training1, training2)
+    pd.testing.assert_frame_equal(validation1, validation2)
+    pd.testing.assert_frame_equal(testing1, testing2)
+
+
+def test_split_ratings_different_seed():
+    ratings = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30, 20, 20, 21, 21, 22, 22],
+            "movieId": [7, 99, 7, 99, 7, 99, 7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5, 4.0, 5.0, 3.5, 5, 5, 1],
+        }
+    )
+    (training1, _, _) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
+    (training2, _, _) = split_ratings(ratings, 41, (0.8, 0.1, 0.1))
+
+    assert set(training1.index) != set(training2.index)
+
+
+def test_split_ratings_ratios_dont_add_up_to_one():
+    ratings = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30, 20, 20, 21, 21, 22, 22],
+            "movieId": [7, 99, 7, 99, 7, 99, 7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5, 4.0, 5.0, 3.5, 5, 5, 1],
+        }
+    )
+    with pytest.raises(ValueError) as execinfo:
+        split_ratings(ratings, 40, (0.8, 0.1, 0.2))
+    assert "ratios do not add up to one" in str(execinfo.value)
+
+
+def test_drop_unknown():
+    training = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30, 20, 20, 21, 21, 22, 22],
+            "movieId": [7, 99, 7, 99, 7, 99, 7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5, 4.0, 5.0, 3.5, 5, 5, 1],
+        }
+    )
+
+    validation = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30, 20, 20, 21, 21, 22, 51],
+            "movieId": [7, 99, 7, 99, 7, 99, 7, 99, 100, 99],
+            "rating": [4.0, 5.0, 3.5, 5, 4.0, 5.0, 3.5, 5, 5, 1],
+        }
+    )
+
+    expected_filtered = pd.DataFrame(
+        {
+            "userId": [30, 10, 10, 30, 20, 20, 21, 21],
+            "movieId": [7, 99, 7, 99, 7, 99, 7, 99],
+            "rating": [4.0, 5.0, 3.5, 5, 4.0, 5.0, 3.5, 5],
+        }
+    )
+
+    (df_filtered, num_rows_deleted) = drop_unknown(validation, training)
+
+    pd.testing.assert_frame_equal(df_filtered, expected_filtered)
+    assert num_rows_deleted == 2

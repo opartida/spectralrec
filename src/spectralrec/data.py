@@ -94,3 +94,31 @@ def encode_ratings(df: pd.DataFrame, maps: IndexMaps):
             f"Unknown movieId values (not in index maps): {df.loc[movies_without_index, 'movieId'].unique()}"
         )
     return users.to_numpy(), movies.to_numpy(), ratings.to_numpy()
+
+
+def split_ratings(df, seed: int, ratios=(0.8, 0.1, 0.1)):
+    if not np.isclose(sum(ratios), 1):
+        raise ValueError("ratios do not add up to one")
+    rng = np.random.default_rng(seed)
+    nrows = df.shape[0]
+    order = rng.permutation(nrows)
+    num_rows_in_training = int(ratios[0] * nrows)
+    num_rows_in_validation = int(ratios[1] * nrows)
+    training = df.iloc[order[0:num_rows_in_training]]
+    validation = df.iloc[
+        order[num_rows_in_training : num_rows_in_training + num_rows_in_validation]
+    ]
+    testing = df.iloc[order[num_rows_in_training + num_rows_in_validation :]]
+
+    return training, validation, testing
+
+
+def drop_unknown(df, train):
+    known_users = df["userId"].isin(train["userId"].unique())
+    known_movies = df["movieId"].isin(train["movieId"].unique())
+
+    df_filtered = df[known_users & known_movies]
+
+    num_rows_deleted = df.shape[0] - df_filtered.shape[0]
+
+    return df_filtered, num_rows_deleted

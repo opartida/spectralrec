@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -n '/Sesion 6/,$p' reports/notas.md)"
+    ],
+    "additionalDirectories": [
+      "/Users/oliver/Projects/spectralrec/reports"
+    ]
+  }
+}

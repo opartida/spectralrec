@@ -46,3 +46,10 @@ No, desconocido es que no se calificó esa película. 0 no es posible y seria un
    Porque los ids pueden ser numeros no correlativos y si se usara el id como número de fila la matriz podría ser muy grnade si estos ids son grandes
 2. **¿Qué debería pasar si validación contiene un ID que no estaba en train?**
    Quitarlo del conjunto y contar cuantas se quitan.
+
+## Sesion 6
+
+1. **¿Por qué tres conjuntos y no dos?**
+   Training es para generar el modelo. Validation para seleccionar el mejor modelo y testing para test final del modelo. El modelo se tiene que evaluar con datos que no haya sido usados para hacer la elección del mismo. La evaluacion del modelo estaría inflada ya que pudo obtener una buena evaluacion simplemente por azar.
+2. **¿Qué tipo de películas desaparecen de val/test al filtrar y cómo sesga eso la evaluación?**
+   Las películas que no tengan usuario o pelicula que no haya sido usado para generar el modelo, es decir, que no hayan aparecido en training data set. Es decir pelícuals con pocas valoraciones. Si tiene una sola valoración si cae en validación o test será eliminada. Al quitarlas la valoración del modelo será mejor porque valorar películas raras es mas dificil. Además, el resultado no dice nada de cómo funciona el modelo con películas raras.
