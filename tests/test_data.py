@@ -260,12 +260,12 @@ def test_split_ratings():
         }
     )
 
-    (training, validation, testing) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
+    (train, val, test) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
 
-    assert len(training.index.intersection(validation.index)) == 0
-    assert len(validation.index.intersection(testing.index)) == 0
-    assert len(training.index.intersection(testing.index)) == 0
-    assert training.shape[0] + validation.shape[0] + testing.shape[0] == 10
+    assert len(train.index.intersection(val.index)) == 0
+    assert len(val.index.intersection(test.index)) == 0
+    assert len(train.index.intersection(test.index)) == 0
+    assert train.shape[0] + val.shape[0] + test.shape[0] == 10
 
 
 def test_split_ratings_same_seed():
@@ -277,12 +277,12 @@ def test_split_ratings_same_seed():
         }
     )
 
-    (training1, validation1, testing1) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
-    (training2, validation2, testing2) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
+    (train1, val1, test1) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
+    (train2, val2, test2) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
 
-    pd.testing.assert_frame_equal(training1, training2)
-    pd.testing.assert_frame_equal(validation1, validation2)
-    pd.testing.assert_frame_equal(testing1, testing2)
+    pd.testing.assert_frame_equal(train1, train2)
+    pd.testing.assert_frame_equal(val1, val2)
+    pd.testing.assert_frame_equal(test1, test2)
 
 
 def test_split_ratings_different_seed():
@@ -293,10 +293,10 @@ def test_split_ratings_different_seed():
             "rating": [4.0, 5.0, 3.5, 5, 4.0, 5.0, 3.5, 5, 5, 1],
         }
     )
-    (training1, _, _) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
-    (training2, _, _) = split_ratings(ratings, 41, (0.8, 0.1, 0.1))
+    (train1, _, _) = split_ratings(ratings, 40, (0.8, 0.1, 0.1))
+    (train2, _, _) = split_ratings(ratings, 41, (0.8, 0.1, 0.1))
 
-    assert set(training1.index) != set(training2.index)
+    assert set(train1.index) != set(train2.index)
 
 
 def test_split_ratings_ratios_dont_add_up_to_one():
@@ -313,7 +313,7 @@ def test_split_ratings_ratios_dont_add_up_to_one():
 
 
 def test_drop_unknown():
-    training = pd.DataFrame(
+    train = pd.DataFrame(
         {
             "userId": [30, 10, 10, 30, 20, 20, 21, 21, 22, 22],
             "movieId": [7, 99, 7, 99, 7, 99, 7, 99, 7, 99],
@@ -321,7 +321,7 @@ def test_drop_unknown():
         }
     )
 
-    validation = pd.DataFrame(
+    val = pd.DataFrame(
         {
             "userId": [30, 10, 10, 30, 20, 20, 21, 21, 22, 51],
             "movieId": [7, 99, 7, 99, 7, 99, 7, 99, 100, 99],
@@ -337,7 +337,7 @@ def test_drop_unknown():
         }
     )
 
-    (df_filtered, num_rows_deleted) = drop_unknown(validation, training)
+    (df_filtered, num_rows_deleted) = drop_unknown(val, train)
 
     pd.testing.assert_frame_equal(df_filtered, expected_filtered)
     assert num_rows_deleted == 2

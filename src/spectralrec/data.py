@@ -102,15 +102,15 @@ def split_ratings(df, seed: int, ratios=(0.8, 0.1, 0.1)):
     rng = np.random.default_rng(seed)
     nrows = df.shape[0]
     order = rng.permutation(nrows)
-    num_rows_in_training = int(ratios[0] * nrows)
-    num_rows_in_validation = int(ratios[1] * nrows)
-    training = df.iloc[order[0:num_rows_in_training]]
-    validation = df.iloc[
-        order[num_rows_in_training : num_rows_in_training + num_rows_in_validation]
+    n_train = int(ratios[0] * nrows)
+    n_val = int(ratios[1] * nrows)
+    train = df.iloc[order[0:n_train]]
+    val = df.iloc[
+        order[n_train : n_train + n_val]
     ]
-    testing = df.iloc[order[num_rows_in_training + num_rows_in_validation :]]
+    test = df.iloc[order[n_train + n_val :]]
 
-    return training, validation, testing
+    return train, val, test
 
 
 def drop_unknown(df, train):
