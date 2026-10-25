@@ -393,7 +393,15 @@ class GlobalMean:
 
 $$\min_{b}\ \sum_{u \in R(i)} (r_{ui} - \mu - b)^2 + \lambda\, b^2$$
 
-Deriva la solución: es ridge en una dimensión. ¿Qué pasa con $\lambda = 0$ en una película con una sola valoración? ¿Y con $\lambda \to \infty$? Calcula después $b_u$ del mismo modo, con los $b_i$ ya fijados.
+donde $R(i)$ es el conjunto de usuarios que valoraron la película $i$ y $n_i = |R(i)|$ es cuántos son.
+
+Deriva la solución: es ridge en una dimensión. Después responde en `reports/notas.md`:
+
+1. Con $\lambda = 0$, ¿qué es $b_i$? ¿Cuánto vale en una película con una sola valoración de 5 estrellas, si $\mu = 3.5$? ¿Te fiarías de ese valor?
+2. Con $\lambda \to \infty$, ¿hacia dónde van $b_i$ y la predicción $\mu + b_i$?
+3. Escribe $b_i$ como (un factor que depende de $n_i$ y $\lambda$) × (la media de $r_{ui} - \mu$ de la película). Con el mismo $\lambda$, ¿cuánto vale ese factor para una película con 1 valoración y para una con 300?
+
+Calcula después $b_u$ del mismo modo, con los $b_i$ ya fijados. Ahora la suma va sobre $R(u)$, las películas que valoró el usuario $u$. ¿Qué hace el papel que antes hacía $\mu$, y sigue siendo una constante?
 
 **Pista.** `np.bincount(users, weights=..., minlength=n_users)` suma por usuario sin bucles.
 

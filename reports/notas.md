@@ -65,3 +65,27 @@ No, desconocido es que no se calificó esa película. 0 no es posible y seria un
    mae = 1
    rmse1 = 1
    rmse2 = 1.73
+
+## Sesión 8
+
+$$b_i = \frac{\sum_{u \in R(i)} r_{ui} - n_i\mu}{\lambda_i + n_i}
+$$
+
+$$b_u = \frac{\sum_{i \in R(u)} r_{ui} - n_u\mu - \sum_{i \in R(u)} b_i}{\lambda_u + n_u} = 
+\frac{\sum_{i \in R(u)} (r_{ui} - b_i - \mu)} {\lambda_u + n_u}
+$$
+
+1. **Con $\lambda = 0$: ¿qué es $b_i$? Descríbelo con palabras. ¿Cuánto valdría para una película con una sola valoración de 5 estrellas, si $\mu$ es 3.5? ¿Te fiarías de ese valor?**
+Cuanto se desvía la media de la película de la media global. Valdría 5 - 3.5 = 1.5. No me fiaría esa desviación puede ser casualidad no hay suficientes datos para tener un valor robusto.
+
+2. **Con $\lambda$ muy grande: ¿hacia dónde va $b_i$? ¿Y la predicción $\mu + b_i$?**
+A 0. A la media mu.
+
+3. **Para verlo de un golpe: escribe $b_i$ como (un factor que depende de $n_i$ y $\lambda$) × (la media de $r_{ui} - \mu$ de esa película). Con el mismo $\lambda$, ¿cuánto vale ese factor para una película con 1 valoración y para una con 300?**
+
+$$b_i = \sum_{u \in R(i)} \frac{r_{ui} - \mu}{\lambda + n_i} = \sum_{u \in R(i)}\frac{ n_i(r_{ui} - \mu)}{n_i(\lambda + n_i)} = 
+\frac{n_i}{(\lambda + n_i)}\sum_{u \in R(i)}\frac{(r_{ui} - \mu)}{n_i}
+$$
+
+Si el número de valoraciones de la película es mucho mayor $\lambda$ el modelo se fiará de los datos y predicirá la media de la película. Si el número de valoraciones es mucho menor que lambda el modelo predicirá la media global.
+Entre medias es una mezcla de las dos, y el peso de la media de la película es el factor $\frac{n_i}{\lambda + n_i}$
