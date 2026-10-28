@@ -89,3 +89,20 @@ $$
 
 Si el número de valoraciones de la película es mucho mayor $\lambda$ el modelo se fiará de los datos y predicirá la media de la película. Si el número de valoraciones es mucho menor que lambda el modelo predicirá la media global.
 Entre medias es una mezcla de las dos, y el peso de la media de la película es el factor $\frac{n_i}{\lambda + n_i}$
+
+1. **¿Coincide con el orden que predijiste? Si no, ¿qué te sorprende?**
+Si, coincide
+2. **¿Por qué mejora cada modelo al anterior?**
+El UserMean le añade al GlobalMean informacion sobre cada usuario específico. Para predecir la valoración de un usario usa la media de sus valoraciones no la media de todos las valoraciones de todos los usuarios. El BiasBaseline tiene información sobre la forma de valorar pelicuals en comparación con otros usuarios. Si tenemos un usuario con una media de valoraciones altas, UserMean valoraria cualquier película no valorada por este usuario con una valoracion alta, la media del usuario. Sin embargo BiasBaseline la valoraría como la valora la media pero teniendo en cuenta la forma de valorar de este usuario específico con respecto a los otros usuarios. Si este usuario valora mas alto se vería reflejado en la valoración.
+
+3. **Reto opcional: el RMSE de GlobalMean debería coincidir, aproximadamente, con una estadística muy conocida de las notas de validación. ¿Cuál? Pista: el RMSE de predecir siempre la media es la raíz de la media de $(r - \mu)^2$. Puedes comprobarlo con NumPy.**
+Desviación típica
+
+4. **¿Cuánto cambia el RMSE si mueves `reg_movie` (de 0 a 10, con `reg_user` fijo)? ¿Y si mueves `reg_user` (con `reg_movie` fijo)? ¿Cuál de los dos $\lambda$ importa más, y por qué, teniendo en cuenta que cada usuario tiene al menos 20 valoraciones y que la mediana por película es 3?**
+
+si mueves reg_movie dejando reg_user fijo cambia mas o menos 0.025 y mueves reg_user y dejas reg_movie fijo no cambia nada. Importa mas reg_movie. 
+Pasa porque el modelo da valoraciones usando una mezcla de la media global y la media de la pelicula o del usuario. Lambda controla si tiende mas a la media global o a la de las películas. Si tienes mas valoracions por película o usuario que lambda usará mas la media por película o usuario y si es menos la global.
+Todos los usuarios tienen al menos 20 notas, más que cualquier $\lambda$ entre 0 y 10, así que reg_user casi no cambia nada. La mitad de las películas tiene 3 o menos, así que reg_movie sí cambia mucho.
+
+
+
