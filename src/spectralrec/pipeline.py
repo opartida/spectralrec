@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from spectralrec.baselines import BiasBaseline
 from spectralrec.data import (
     IndexMaps,
     build_index_maps,
@@ -30,6 +31,14 @@ class PreparedData:
     test_num_rows_deleted: int
 
 
+@dataclass
+class BiasBaselineResiduals:
+    train_residuals: np.ndarray
+    val_residuals: np.ndarray
+    test_residuals: np.ndarray
+    bias_model: BiasBaseline
+
+
 def prepare_data(ratings_path, split_seed) -> PreparedData:
     data_ratings = load_ratings(ratings_path)
     validate_ratings(data_ratings)
@@ -44,4 +53,29 @@ def prepare_data(ratings_path, split_seed) -> PreparedData:
         index_maps=index_maps,
         val_num_rows_deleted=val_num_rows_deleted,
         test_num_rows_deleted=test_num_rows_deleted,
+    )
+
+
+def compute_residuals(data: PreparedData, reg_movie, reg_user) -> BiasBaselineResiduals:
+    n_users = len(data.index_maps.user_ids)
+    n_movies = len(data.index_maps.movie_ids)
+    bias_model = BiasBaseline(
+        n_users=n_users, n_movies=n_movies, reg_user=reg_user, reg_movie=reg_movie
+    )
+    bias_model.fit(data.train.users, data.train.movies, data.train.ratings)
+    train_residuals = data.train.ratings - bias_model.predict(
+        data.train.users, data.train.movies
+    )
+    val_residuals = data.val.ratings - bias_model.predict(
+        data.val.users, data.val.movies
+    )
+    test_residuals = data.test.ratings - bias_model.predict(
+        data.test.users, data.test.movies
+    )
+
+    return BiasBaselineResiduals(
+        train_residuals=train_residuals,
+        val_residuals=val_residuals,
+        test_residuals=test_residuals,
+        bias_model=bias_model,
     )

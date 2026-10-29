@@ -428,7 +428,9 @@ Calcula después $b_u$ del mismo modo, con los $b_i$ ya fijados. Ahora la suma v
 
 **Lee.** Lectures 1–2 (rango; el producto como suma de matrices de rango 1) · Koren et al. (2009), *A basic matrix factorization model*
 
-Desde aquí el objetivo es el **residuo** $\tilde r_{ui} = r_{ui} - (\mu + b_u + b_i)$, con el `BiasBaseline` de la sesión 08 ajustado solo con train. Amplía `prepare_data` para que devuelva también los residuos.
+Desde aquí el objetivo es el **residuo** $\tilde r_{ui} = r_{ui} - (\mu + b_u + b_i)$: lo que los sesgos no explican, es decir, los gustos personales. El modelo de rango bajo aprende a predecir ese residuo, y la predicción final es la del `BiasBaseline` más la del modelo nuevo.
+
+**Paso 0: residuos.** Añade en `pipeline.py` una función `compute_residuals(data, reg_movie, reg_user)` que reciba lo que devuelve `prepare_data` y los dos $\lambda$ de `configs/baseline.json`, entrene un `BiasBaseline` **solo con train** y devuelva los residuos de train, val y test junto con el modelo entrenado (lo necesitarás para volver de residuos a notas). No lo metas dentro de `prepare_data`: `scripts/baselines.py` usa `prepare_data` para elegir esos $\lambda$, y se crearía una dependencia circular.
 
 **Programa.** Escribe primero las formas como comentario:
 

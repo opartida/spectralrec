@@ -104,5 +104,35 @@ si mueves reg_movie dejando reg_user fijo cambia mas o menos 0.025 y mueves reg_
 Pasa porque el modelo da valoraciones usando una mezcla de la media global y la media de la pelicula o del usuario. Lambda controla si tiende mas a la media global o a la de las películas. Si tienes mas valoracions por película o usuario que lambda usará mas la media por película o usuario y si es menos la global.
 Todos los usuarios tienen al menos 20 notas, más que cualquier $\lambda$ entre 0 y 10, así que reg_user casi no cambia nada. La mitad de las películas tiene 3 o menos, así que reg_movie sí cambia mucho.
 
+## Sesión 9
+1. **¿qué significa describir una película con $k$ números?**
+significa extraer unos factores de los datos y representar las valoraciones de un usuario mediante una combinacion lineal de esos factores. Entonces en vez de tener n numeros que representan las vsloraciones de un usario tendriamos k numeros uno por cada factor y donde k sería menor que n. Basicamente queremos encontrar reducción de dimensión donde los axis nuevos que son los factores tengan un sentido posiblemente gusto por terror o comedia y si fueran películas seria la temática de la película
+2. **¿Por qué $U_u$ y $V_i$ tienen la misma longitud?**
+por que necesitamos compararlos haciendo producto escalar entre ellos y contienen ademas en cada fila la representacion de un usuario/película en términos de los factores, la posición $j$ de los dos vectores habla del mismo factor. En el usuario, cuánto le gusta ese factor; en la película, cuánto lo tiene.
+3. **¿Por qué el RMSE calculado sobre los residuos es igual al calculado sobre las notas?**
+
+$$\text{Sobre notas:}\quad r_{ui} - (\mu + b_u + b_i + U_u \cdot V_i) = r_{ui} - \mu - b_u - b_i - U_u \cdot V_i$$
+
+$$\text{Sobre residuos:}\quad (r_{ui} - \mu - b_u - b_i) - U_u \cdot V_i = r_{ui} - \mu - b_u - b_i - U_u \cdot V_i$$
+
+El error de cada pareja es el mismo de las dos formas. Como el RMSE solo depende de los errores (la raíz de la media de sus cuadrados), sale igual.
+
+
+$$UV^\top = \sum_{j=1}^{k} U_{:,j}\, V_{:,j}^\top$$
+
+1. **¿Por qué cada sumando $U_{:,j}\, V_{:,j}^\top$ tiene rango 1?**
+Porque es una multiplicacion columna x fila y por tanto cada fila de la matriz es un multiplo de la fila inicial donde el multiplicador es el coeficiente correspondiente del vector columna.
+
+2. **¿Por qué la suma tiene rango $\le k$?**
+podemos ver cada fila como combinacion lineal de k vectores filas donde los coeficientes son los de cada usuario para cada factor por tanto como mucho podrá haber k filas linealmente independientes
+
+3. **¿Cuántos números tiene el modelo frente a usuarios × películas?**
+$U$ tiene $n_{\text{users}} \cdot k$ números y $V$ tiene $n_{\text{movies}} \cdot k$, así que el modelo tiene
+
+$$k\,(n_{\text{users}} + n_{\text{movies}})$$
+
+frente a los $n_{\text{users}} \cdot n_{\text{movies}}$ de la tabla completa. Con $n_{\text{users}} = 610$, $n_{\text{movies}} = 9724$ y $k = 10$, el modelo tiene 103340 números y la tabla 5931640, unas 58 veces más.
+
+
 
 
