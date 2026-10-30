@@ -133,6 +133,22 @@ $$k\,(n_{\text{users}} + n_{\text{movies}})$$
 
 frente a los $n_{\text{users}} \cdot n_{\text{movies}}$ de la tabla completa. Con $n_{\text{users}} = 610$, $n_{\text{movies}} = 9724$ y $k = 10$, el modelo tiene 103340 números y la tabla 5931640, unas 58 veces más.
 
+## Sesión 10
+1. **¿En qué se diferenciarán los σ de la matriz real de los del control?**
+Espero que la matriz de control tenga menos estructura y por tanto tenga unos valores singulares mas parecidos entre si en tamaño. La matriz original tendrá algunos valores singulares grandes y el resto despreciables frente a estos.
+La figura muestra dos curvas muy parecidas que se separan ligeramente en los últimos valores singulares. Los primeros $\sigma$ dependen sobre todo de lo que comparten las dos matrices, es decir, del patrón de huecos, y no de dónde está colocado cada valor, que es donde estarían los gustos.
+
+2. **Si la hipótesis es correcta, ¿qué esperas ver al comparar la submatriz densa con su control?**
+Lo contrario que antes las curvas deberian separarse al principio y ser  similares hacia el final.
+Si divergen al principio quedando la matriz de inicial por encima al principio lo que indica que tiene mas estructura que la de control.
+
+3. **¿Qué tamaño de submatriz elijo y por qué?**
+- Density for (50, 50): 61.8%
+- Density for (100, 100): 49.9%
+- Density for (200, 200): 33.0%
+
+Elegimos la mas densa es decir submatriz 50x50 ya que queremos que tenga los menos ceros posibles. Tenemos menos valores singulares pero suficientes para ver comportamiento de las curvas.
+
 
 
 
