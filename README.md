@@ -60,6 +60,7 @@ In the full residual matrix $\sigma_1$ stays below the control values and this s
 
 **Proof that $\|M\|_F^2 = \sum_j \sigma_j^2$.** With $M = U \Sigma V^\top$:
 
-$$\|M\|_F^2 = \operatorname{tr}(M^\top M) = \operatorname{tr}(V \Sigma^2 V^\top) = \operatorname{tr}(\Sigma^2 V^\top V) = \operatorname{tr}(\Sigma^2) = \sum_j \sigma_j^2$$
+$$\|M\|_F^2 = \mathrm{tr}(M^\top M) = \mathrm{tr}(V \Sigma^2 V^\top) = \mathrm{tr}(\Sigma^2 V^\top V) = \mathrm{tr}(\Sigma^2) = \sum_j \sigma_j^2$$
+
 
 The more zeros in the matrix the less information we can get from the residuals in relation to tastes. SVD treats each missing cell as a real value of 0, so with 98.3% of the cells missing, the spectrum mostly reflects where the ratings are, not which residual sits in each cell. The biggest singular values of the full matrix and the permuted matrix are very similar. In the dense matrix, the first singular value exceeds those of all 20 controls.
