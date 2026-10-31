@@ -14,3 +14,7 @@ def to_dense(users, movies, values, shape) -> np.ndarray:
     dense_matrix = np.zeros(shape=shape)
     dense_matrix[users, movies] = values
     return dense_matrix
+
+
+def compute_singular_values(matrix) -> np.ndarray:
+    return np.linalg.svd(matrix, compute_uv=False)

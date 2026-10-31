@@ -1,6 +1,7 @@
 import numpy as np
+import pytest
 
-from spectralrec.lowrank import predict_observed, to_dense
+from spectralrec.lowrank import compute_singular_values, predict_observed, to_dense
 
 
 def test_predict_observed():
@@ -32,3 +33,24 @@ def test_to_dense():
         to_dense(users=users, movies=movies, values=values, shape=(3, 5)),
         expected_result,
     )
+
+
+def test_rank_3_matrix_has_three_singular_values():
+    rng = np.random.default_rng(42)
+    B = rng.normal(size=(20, 3))
+    C = rng.normal(size=(15, 3))
+
+    M = B @ np.transpose(C)
+
+    singular_values = compute_singular_values(M)
+
+    assert np.count_nonzero(singular_values > 1e-10) == 3
+
+
+def test_sum_of_squares_equals_sum_of_squared_singular_values():
+    rng = np.random.default_rng(42)
+    B = rng.normal(size=(20, 15))
+
+    singular_values = compute_singular_values(B)
+
+    assert np.sum(B**2) == pytest.approx(np.sum(singular_values**2))

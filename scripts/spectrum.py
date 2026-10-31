@@ -5,47 +5,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectralrec.config import RESIDUALS_PERMUTATION_SEED, SPLIT_SEED
-from spectralrec.lowrank import to_dense
+from spectralrec.lowrank import compute_singular_values, to_dense
 from spectralrec.pipeline import compute_residuals, prepare_data
 
 RATINGS_PATH = Path("data/raw/ml-latest-small/ratings.csv")
 
 
-def main():
-    """Compare the singular values of the train residuals with a shuffled control and save the figure."""
-
-    with open("configs/baseline.json") as f:
-        config = json.load(f)
-    data = prepare_data(ratings_path=RATINGS_PATH, split_seed=SPLIT_SEED)
-    shape = (len(data.index_maps.user_ids), len(data.index_maps.movie_ids))
-    residuals = compute_residuals(data, config["reg_movie"], config["reg_user"])
-    residual_matrix = to_dense(
-        data.train.users,
-        data.train.movies,
-        residuals.train_residuals,
-        shape=shape,
-    )
-
-    singular_values = np.linalg.svd(
-        residual_matrix, full_matrices=False, compute_uv=False
-    )
-
-    rng = np.random.default_rng(RESIDUALS_PERMUTATION_SEED)
-    residual_control_matrix = to_dense(
-        data.train.users,
-        data.train.movies,
-        rng.permutation(residuals.train_residuals),
-        shape=shape,
-    )
-
-    control_singular_values = np.linalg.svd(
-        residual_control_matrix, full_matrices=False, compute_uv=False
-    )
-
-    print(f"Singular values residual matrix: {singular_values}")
-    print(f"Singular values control matrix: {control_singular_values}")
-
+def plot_singular_values(singular_values, control_singular_values, fig_title, fig_path):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    fig.suptitle(fig_title)
     ax1.set_title("Singular values")
     ax1.set_yscale("log")
 
@@ -74,7 +42,57 @@ def main():
         label="shuffled control",
     )
     ax2.legend()
-    fig.savefig("reports/figures/spectrum.png")
+    fig.savefig(fig_path)
+
+
+def main():
+    """Compare the singular values of the train residuals with a shuffled control and save the figure."""
+
+    with open("configs/baseline.json") as f:
+        config = json.load(f)
+    data = prepare_data(ratings_path=RATINGS_PATH, split_seed=SPLIT_SEED)
+    shape = (len(data.index_maps.user_ids), len(data.index_maps.movie_ids))
+    residuals = compute_residuals(data, config["reg_movie"], config["reg_user"])
+    residual_matrix = to_dense(
+        data.train.users,
+        data.train.movies,
+        residuals.train_residuals,
+        shape=shape,
+    )
+
+    singular_values = compute_singular_values(matrix=residual_matrix)
+
+    rng = np.random.default_rng(RESIDUALS_PERMUTATION_SEED)
+
+    list_control_first_singular_value = []
+    for _ in range(20):
+        residual_control_matrix = to_dense(
+            data.train.users,
+            data.train.movies,
+            rng.permutation(residuals.train_residuals),
+            shape=shape,
+        )
+
+        control_singular_values = compute_singular_values(
+            matrix=residual_control_matrix
+        )
+
+        list_control_first_singular_value.append(control_singular_values[0])
+
+    print(f"First singular value: {singular_values[0]:.2f}")
+    print(
+        f"Max control first singular value: {np.max(list_control_first_singular_value):.2f}"
+    )
+    print(
+        f"Min control first singular value: {np.min(list_control_first_singular_value):.2f}"
+    )
+
+    plot_singular_values(
+        singular_values=singular_values,
+        control_singular_values=control_singular_values,
+        fig_title="Full matrix",
+        fig_path="reports/figures/spectrum.png",
+    )
 
     ratings_per_movie = np.bincount(
         data.train.movies, minlength=len(data.index_maps.movie_ids)
@@ -100,34 +118,38 @@ def main():
             sorted_movie_idx[-best_size_sub_matrix:],
         )
     ]
-    dense_singular_values = np.linalg.svd(
-        dense_submatrix, full_matrices=False, compute_uv=False
-    )
+    dense_singular_values = compute_singular_values(matrix=dense_submatrix)
 
     mask = dense_submatrix != 0
     dense_control = dense_submatrix.copy()
-    dense_control[mask] = rng.permutation(dense_submatrix[mask])
 
-    dense_control_singular_values = np.linalg.svd(
-        dense_control, full_matrices=False, compute_uv=False
+    list_control_dense_first_singular_value = []
+    for _ in range(20):
+        dense_control[mask] = rng.permutation(dense_submatrix[mask])
+
+        dense_control_singular_values = compute_singular_values(matrix=dense_control)
+
+        list_control_dense_first_singular_value.append(dense_control_singular_values[0])
+
+    print(f"First dense singular value: {dense_singular_values[0]:.2f}")
+    print(
+        f"Max dense control first singular value: {np.max(list_control_dense_first_singular_value):.2f}"
+    )
+    print(
+        f"Min dense control first singular value: {np.min(list_control_dense_first_singular_value):.2f}"
     )
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-    ax1.set_title("Singular values")
-    ax1.set_yscale("log")
-
-    x_values = np.arange(1, len(dense_singular_values) + 1)
-    ax1.set_xlabel("j")
-    ax1.set_ylabel(r"$\sigma_j$")
-    ax1.plot(x_values, dense_singular_values, label="train residuals")
-    ax1.plot(
-        x_values,
-        dense_control_singular_values,
-        label="shuffled control",
+    plot_singular_values(
+        singular_values=dense_singular_values,
+        control_singular_values=dense_control_singular_values,
+        fig_title=f"Dense {best_size_sub_matrix} × {best_size_sub_matrix} submatrix",
+        fig_path="reports/figures/spectrum_dense.png",
     )
-    ax1.legend()
 
-    fig.savefig("reports/figures/spectrum_dense.png")
+    print(f"First 10 singular values, dense submatrix: {dense_singular_values[:10]}")
+    print(
+        f"First 10 singular values, shuffled control: {dense_control_singular_values[:10]}"
+    )
 
 
 if __name__ == "__main__":

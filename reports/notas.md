@@ -138,9 +138,17 @@ frente a los $n_{\text{users}} \cdot n_{\text{movies}}$ de la tabla completa. Co
 Espero que la matriz de control tenga menos estructura y por tanto tenga unos valores singulares mas parecidos entre si en tamaño. La matriz original tendrá algunos valores singulares grandes y el resto despreciables frente a estos.
 La figura muestra dos curvas muy parecidas que se separan ligeramente en los últimos valores singulares. Los primeros $\sigma$ dependen sobre todo de lo que comparten las dos matrices, es decir, del patrón de huecos, y no de dónde está colocado cada valor, que es donde estarían los gustos.
 
+First singular value: 35.55
+Max control first singular value: 38.61
+Min control first singular value: 36.81
+
+el $\sigma_1$ real queda por debajo de los controles, así que el barajado cambia algo más que los gustos
+
 2. **Si la hipótesis es correcta, ¿qué esperas ver al comparar la submatriz densa con su control?**
 Lo contrario que antes las curvas deberian separarse al principio y ser  similares hacia el final.
-Si divergen al principio quedando la matriz de inicial por encima al principio lo que indica que tiene mas estructura que la de control.
+Si divergen al principio quedando la matriz real por encima al principio lo que indica que $\sigma_1$ recoge algo que el barajado no reproduce. En todo el resto de tramos la curva de la matriz de control queda por encima de la matriz real.
+El $\sigma_1$ real (10,64) supera el máximo de 20 controles (8,70; mínimo 7,67), así que esa diferencia difícilmente es casualidad del barajado. El resto del espectro no lo he comprobado.
+
 
 3. **¿Qué tamaño de submatriz elijo y por qué?**
 - Density for (50, 50): 61.8%
