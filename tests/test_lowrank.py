@@ -1,7 +1,12 @@
 import numpy as np
 import pytest
 
-from spectralrec.lowrank import compute_singular_values, predict_observed, to_dense
+from spectralrec.lowrank import (
+    TruncatedSVD,
+    compute_singular_values,
+    predict_observed,
+    to_dense,
+)
 
 
 def test_predict_observed():
@@ -54,3 +59,44 @@ def test_sum_of_squares_equals_sum_of_squared_singular_values():
     singular_values = compute_singular_values(B)
 
     assert np.sum(B**2) == pytest.approx(np.sum(singular_values**2))
+
+
+def test_truncated_svd_reconstructs_rank_2_matrix():
+    rank = 2
+    k = 2
+    model = TruncatedSVD(k)
+    rng = np.random.default_rng(42)
+    shape = (20, 15)
+    n_users = shape[0]
+    n_movies = shape[1]
+    B = rng.normal(size=(n_users, rank))
+    C = rng.normal(size=(n_movies, rank))
+    M = B @ np.transpose(C)
+    users = np.repeat(np.arange(n_users), n_movies)
+    movies = np.tile(np.arange(n_movies), n_users)
+    values = np.ravel(M)
+    model.fit(users=users, movies=movies, residuals=values, shape=shape)
+    np.testing.assert_array_almost_equal(
+        model.predict(users=users, movies=movies), values
+    )
+
+
+def test_truncated_svd_error_equals_sum_of_discarded_squared_singular_values():
+    rank = 2
+    k = 1
+    model = TruncatedSVD(k)
+    rng = np.random.default_rng(42)
+    shape = (20, 15)
+    n_users = shape[0]
+    n_movies = shape[1]
+    B = rng.normal(size=(n_users, rank))
+    C = rng.normal(size=(n_movies, rank))
+    M = B @ np.transpose(C)
+    users = np.repeat(np.arange(n_users), n_movies)
+    movies = np.tile(np.arange(n_movies), n_users)
+    values = np.ravel(M)
+    model.fit(users=users, movies=movies, residuals=values, shape=shape)
+    P = model.predict(users=users, movies=movies)
+    e = np.sum((values - P) ** 2)
+    singular_values = compute_singular_values(M)
+    np.testing.assert_almost_equal(e, np.sum(singular_values[k:] ** 2))

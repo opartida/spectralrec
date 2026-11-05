@@ -64,3 +64,21 @@ $$\|M\|_F^2 = \mathrm{tr}(M^\top M) = \mathrm{tr}(V \Sigma^2 V^\top) = \mathrm{t
 
 
 The more zeros in the matrix the less information we can get from the residuals in relation to tastes. SVD treats each missing cell as a real value of 0, so with 98.3% of the cells missing, the spectrum mostly reflects where the ratings are, not which residual sits in each cell. The biggest singular values of the full matrix and the permuted matrix are very similar. In the dense matrix, the first singular value exceeds those of all 20 controls.
+
+## Truncated SVD (Eckart–Young)
+
+|   k | RMSE train | RMSE val |
+|-----|------------|----------|
+|   1 |     0.7956 |   0.8529 |
+|   2 |     0.7874 |   0.8531 |
+|   5 |     0.7610 |   0.8503 |
+|  10 |     0.7273 |   0.8491 |
+|  20 |     0.6771 |   0.8474 |
+|  50 |     0.5604 |   0.8490 |
+| 100 |     0.4283 |   0.8519 |
+
+Bias baseline (predicted residual 0): validation RMSE 0.8554.
+
+The training RMSE falls steadily with k, from 0.7956 at k = 1 to 0.4283 at k = 100, because the truncated SVD approximates the training residual matrix more closely as k grows. The validation RMSE barely moves: its best value, 0.8474 at k = 20, is less than 0.01 below the bias baseline. The reason is the zero filling. Validation pairs are empty cells of the training matrix, stored as 0. With small k, the approximation of an almost all-zero matrix is small everywhere, and with large k it reproduces those zeros. In both cases, the predicted residuals for validation pairs stay close to 0, so the model predicts almost the same ratings as the biases alone.
+
+![Truncated SVD: RMSE vs k](reports/figures/svd_k.png)

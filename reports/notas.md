@@ -52,7 +52,7 @@ No, desconocido es que no se calificó esa película. 0 no es posible y seria un
 1. **¿Por qué tres conjuntos y no dos?**
    Training es para generar el modelo. Validation para seleccionar el mejor modelo y testing para test final del modelo. El modelo se tiene que evaluar con datos que no haya sido usados para hacer la elección del mismo. La evaluacion del modelo estaría inflada ya que pudo obtener una buena evaluacion simplemente por azar.
 2. **¿Qué tipo de películas desaparecen de val/test al filtrar y cómo sesga eso la evaluación?**
-   Las películas que no tengan usuario o pelicula que no haya sido usado para generar el modelo, es decir, que no hayan aparecido en training data set. Es decir pelícuals con pocas valoraciones. Si tiene una sola valoración si cae en validación o test será eliminada. Al quitarlas la valoración del modelo será mejor porque valorar películas raras es mas dificil. Además, el resultado no dice nada de cómo funciona el modelo con películas raras.
+   Las películas que no tengan usuario o pelicula que no haya sido usado para generar el modelo, es decir, que no hayan aparecido en training data set. Es decir pelícuals con pocas valoraciones. Si tiene una sola valoración si cae en validación o test será eliminada. Al quitarlas la valoración del modelo será mejor porque valorar películas raras es más dificil. Además, el resultado no dice nada de cómo funciona el modelo con películas raras.
 
 ## Sesión 7
 
@@ -93,29 +93,29 @@ Entre medias es una mezcla de las dos, y el peso de la media de la película es 
 1. **¿Coincide con el orden que predijiste? Si no, ¿qué te sorprende?**
 Si, coincide
 2. **¿Por qué mejora cada modelo al anterior?**
-El UserMean le añade al GlobalMean informacion sobre cada usuario específico. Para predecir la valoración de un usario usa la media de sus valoraciones no la media de todos las valoraciones de todos los usuarios. El BiasBaseline tiene información sobre la forma de valorar pelicuals en comparación con otros usuarios. Si tenemos un usuario con una media de valoraciones altas, UserMean valoraria cualquier película no valorada por este usuario con una valoracion alta, la media del usuario. Sin embargo BiasBaseline la valoraría como la valora la media pero teniendo en cuenta la forma de valorar de este usuario específico con respecto a los otros usuarios. Si este usuario valora mas alto se vería reflejado en la valoración.
+El UserMean le añade al GlobalMean informacion sobre cada usuario específico. Para predecir la valoración de un usario usa la media de sus valoraciones no la media de todos las valoraciones de todos los usuarios. El BiasBaseline tiene información sobre la forma de valorar pelicuals en comparación con otros usuarios. Si tenemos un usuario con una media de valoraciones altas, UserMean valoraria cualquier película no valorada por este usuario con una valoracion alta, la media del usuario. Sin embargo BiasBaseline la valoraría como la valora la media pero teniendo en cuenta la forma de valorar de este usuario específico con respecto a los otros usuarios. Si este usuario valora más alto se vería reflejado en la valoración.
 
 3. **Reto opcional: el RMSE de GlobalMean debería coincidir, aproximadamente, con una estadística muy conocida de las notas de validación. ¿Cuál? Pista: el RMSE de predecir siempre la media es la raíz de la media de $(r - \mu)^2$. Puedes comprobarlo con NumPy.**
 Desviación típica
 
 4. **¿Cuánto cambia el RMSE si mueves `reg_movie` (de 0 a 10, con `reg_user` fijo)? ¿Y si mueves `reg_user` (con `reg_movie` fijo)? ¿Cuál de los dos $\lambda$ importa más, y por qué, teniendo en cuenta que cada usuario tiene al menos 20 valoraciones y que la mediana por película es 3?**
 
-si mueves reg_movie dejando reg_user fijo cambia mas o menos 0.025 y mueves reg_user y dejas reg_movie fijo no cambia nada. Importa mas reg_movie. 
-Pasa porque el modelo da valoraciones usando una mezcla de la media global y la media de la pelicula o del usuario. Lambda controla si tiende mas a la media global o a la de las películas. Si tienes mas valoracions por película o usuario que lambda usará mas la media por película o usuario y si es menos la global.
+si mueves reg_movie dejando reg_user fijo cambia más o menos 0.025 y mueves reg_user y dejas reg_movie fijo no cambia nada. Importa más reg_movie. 
+Pasa porque el modelo da valoraciones usando una mezcla de la media global y la media de la pelicula o del usuario. Lambda controla si tiende más a la media global o a la de las películas. Si tienes más valoracions por película o usuario que lambda usará más la media por película o usuario y si es menos la global.
 Todos los usuarios tienen al menos 20 notas, más que cualquier $\lambda$ entre 0 y 10, así que reg_user casi no cambia nada. La mitad de las películas tiene 3 o menos, así que reg_movie sí cambia mucho.
 
 ## Sesión 9
 1. **¿qué significa describir una película con $k$ números?**
 significa extraer unos factores de los datos y representar las valoraciones de un usuario mediante una combinacion lineal de esos factores. Entonces en vez de tener n numeros que representan las vsloraciones de un usario tendriamos k numeros uno por cada factor y donde k sería menor que n. Basicamente queremos encontrar reducción de dimensión donde los axis nuevos que son los factores tengan un sentido posiblemente gusto por terror o comedia y si fueran películas seria la temática de la película
 2. **¿Por qué $U_u$ y $V_i$ tienen la misma longitud?**
-por que necesitamos compararlos haciendo producto escalar entre ellos y contienen ademas en cada fila la representacion de un usuario/película en términos de los factores, la posición $j$ de los dos vectores habla del mismo factor. En el usuario, cuánto le gusta ese factor; en la película, cuánto lo tiene.
+por que necesitamos compararlos haciendo producto escalar entre ellos y contienen además en cada fila la representacion de un usuario/película en términos de los factores, la posición $j$ de los dos vectores habla del mismo factor. En el usuario, cuánto le gusta ese factor; en la película, cuánto lo tiene.
 3. **¿Por qué el RMSE calculado sobre los residuos es igual al calculado sobre las notas?**
 
 $$\text{Sobre notas:}\quad r_{ui} - (\mu + b_u + b_i + U_u \cdot V_i) = r_{ui} - \mu - b_u - b_i - U_u \cdot V_i$$
 
 $$\text{Sobre residuos:}\quad (r_{ui} - \mu - b_u - b_i) - U_u \cdot V_i = r_{ui} - \mu - b_u - b_i - U_u \cdot V_i$$
 
-El error de cada pareja es el mismo de las dos formas. Como el RMSE solo depende de los errores (la raíz de la media de sus cuadrados), sale igual.
+El error de cada pareja es el mismo de las dos formás. Como el RMSE solo depende de los errores (la raíz de la media de sus cuadrados), sale igual.
 
 
 $$UV^\top = \sum_{j=1}^{k} U_{:,j}\, V_{:,j}^\top$$
@@ -135,7 +135,7 @@ frente a los $n_{\text{users}} \cdot n_{\text{movies}}$ de la tabla completa. Co
 
 ## Sesión 10
 1. **¿En qué se diferenciarán los σ de la matriz real de los del control?**
-Espero que la matriz de control tenga menos estructura y por tanto tenga unos valores singulares mas parecidos entre si en tamaño. La matriz original tendrá algunos valores singulares grandes y el resto despreciables frente a estos.
+Espero que la matriz de control tenga menos estructura y por tanto tenga unos valores singulares más parecidos entre si en tamaño. La matriz original tendrá algunos valores singulares grandes y el resto despreciables frente a estos.
 La figura muestra dos curvas muy parecidas que se separan ligeramente en los últimos valores singulares. Los primeros $\sigma$ dependen sobre todo de lo que comparten las dos matrices, es decir, del patrón de huecos, y no de dónde está colocado cada valor, que es donde estarían los gustos.
 
 First singular value: 35.55
@@ -155,8 +155,26 @@ El $\sigma_1$ real (10,64) supera el máximo de 20 controles (8,70; mínimo 7,67
 - Density for (100, 100): 49.9%
 - Density for (200, 200): 33.0%
 
-Elegimos la mas densa es decir submatriz 50x50 ya que queremos que tenga los menos ceros posibles. Tenemos menos valores singulares pero suficientes para ver comportamiento de las curvas.
+Elegimos la más densa es decir submatriz 50x50 ya que queremos que tenga los menos ceros posibles. Tenemos menos valores singulares pero suficientes para ver comportamiento de las curvas.
 
+## Sesión 11
 
+1. **¿Cómo cambiarán el RMSE de train y el de validación al aumentar k?**
+El RMSE de train irá descendiendo ya que usamos su propia matriz de residuos, cuanto mayor sea k más se acercará a los residuos de training. El RMSE de validación debería ir reduciéndose hasta un k a partir del cual empezará a subir al hacerse la aproximación de los residuos muy similar a los de training y no necesariamente a los de validación.
+Se observa que el error de train desciende. Pasa de 0.7956 para k=1 a 0.4283 para k=100. La matriz truncada de SVD se aproxima a los valores de los residuos de train cuando k aumenta y por eso el error se reduce. Los pares de validación se rellenan con ceros en la matriz de residuos de training y al aproximarla con la matriz truncada de SVD si usamos k pequeño como la mayor parte de los valores de la matriz son ceros la matriz aproximada tendrá valores muy pequeños y lo mismo ocurrirá para valores grandes de k ya que la matriz aproximada se parecerá más a la matriz de train con relleno que tiene ceros en los pares de validación y por tanto al calcular los residuos que predice la SVD para los pares de validación serán bastante similares entre sí y se acercan a 0. Como los residuos predichos son casi 0, el modelo predice casi lo mismo que los sesgos. En los datos observamos que el mayor valor de los errores en validación es 0.8531 con k=2 y el menor 0.8474 con k=20. Por lo tanto la predicción se cumple tanto para training como para validación. Para validación existe un descenso desde valores pequeños de k hasta valores intermedios de k pero este descenso es muy pequeño respecto al modelo baseline de sesgos (0.8554) y de nuevo vuelve a subir el error cuando k aumenta.
 
+2. **¿Dónde has puesto Σ: en U, en V o repartida como $\sqrt\Sigma$? ¿Cambia la predicción?**
+La he repartido como $\sqrt\Sigma$ en los dos factores: `U * sqrt(s)` para los usuarios y `sqrt(s) * Vt.T` para las películas. La predicción no cambia la ponga donde la ponga, porque $\Sigma$ aparece una sola vez en el producto:
+
+$$U_k \Sigma_k V_k^\top = (U_k\Sigma_k)\,V_k^\top = U_k\,(\Sigma_k V_k^\top) = (U_k\sqrt{\Sigma_k})(\sqrt{\Sigma_k}\,V_k^\top)$$
+
+Ejemplo con k = 1, σ = 4, u = 0.5 y v = 0.25: con Σ en el usuario, 2 × 0.25 = 0.5; en la película, 0.5 × 1 = 0.5; repartida, 1 × 0.5 = 0.5.
+
+**¿Cambiaría si penalizaras el tamaño de U y V?**
+Sí. Si el modelo minimiza error + λ × (suma de los cuadrados de los números de U y V), la predicción es la misma, pero el coste no. Ejemplo con un usuario, una película y σ = 4 (u = v = 1): con Σ entera en el usuario, los factores son 4 y 1, y el tamaño es 4² + 1² = 17; repartida, los factores son 2 y 2, y el tamaño es 2² + 2² = 8. Las dos opciones predicen 4, pero un modelo penalizado prefiere la repartida, porque paga menos por el tamaño.
+
+3. **¿Qué efecto tienen los ceros de los huecos sobre las predicciones?**
+Los residuos que predice la matriz truncada en los huecos, rellenos con 0, son casi 0. El efecto es que no ayudan a mejorar el modelo de sesgos al usar la matriz truncada de residuos. Ver pregunta 1.
+
+4. **si cada entrada se observara al azar con probabilidad $p$, $\mathbb E[M/p]$ sería la matriz completa. Prueba a reescalar. ¿Se observan al azar las notas de MovieLens?**
 
