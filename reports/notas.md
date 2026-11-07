@@ -178,3 +178,45 @@ Los residuos que predice la matriz truncada en los huecos, rellenos con 0, son c
 
 4. **si cada entrada se observara al azar con probabilidad $p$, $\mathbb E[M/p]$ sería la matriz completa. Prueba a reescalar. ¿Se observan al azar las notas de MovieLens?**
 
+## Sesión 12
+
+1. **Derivación del paso de SGD**
+Pérdida de una observación $(u, i)$:
+
+$$\ell_{ui} = (\tilde r_{ui} - U_u\cdot V_i)^2 + \lambda\big(\lVert U_u\rVert^2 + \lVert V_i\rVert^2\big)$$
+
+Gradientes, con la regla de la cadena. Como $\lVert U_u\rVert^2 = \sum_j U_{uj}^2$, su derivada es $2U_u$:
+
+$$\frac{\partial \ell_{ui}}{\partial U_u} = -2(\tilde r_{ui} - U_u\cdot V_i)\,V_i + 2\lambda U_u$$
+
+$$\frac{\partial \ell_{ui}}{\partial V_i} = -2(\tilde r_{ui} - U_u\cdot V_i)\,U_u + 2\lambda V_i$$
+
+Actualizaciones: un paso en contra del gradiente. El factor 2 aparece en los dos términos, así que lo saco como factor común y lo meto en el learning rate $\eta$:
+
+$$U_u \leftarrow U_u + \eta\,\big[(\tilde r_{ui} - U_u\cdot V_i)\,V_i - \lambda\,U_u\big]$$
+
+$$V_i \leftarrow V_i + \eta\,\big[(\tilde r_{ui} - U_u\cdot V_i)\,U_u - \lambda\,V_i\big]$$
+
+En las dos fórmulas, $U_u$ y $V_i$ a la derecha son los valores de antes del paso.
+
+Comprobación con números (`test_sgd_step`): con $U_u = (1, 2)$, $V_i = (2, 1)$, $\tilde r_{ui} = 5$, $\eta = 0.1$ y $\lambda = 0.5$, la predicción es 4 y el error, 1. Después del paso, $U_u = (1.15,\ 2.0)$ y $V_i = (2.0,\ 1.15)$.
+
+2. **¿Por qué no se inicializa a ceros?**
+Con $U_u = V_i = 0$, los dos gradientes se anulan:
+
+$$\frac{\partial \ell_{ui}}{\partial U_u} = -2(\tilde r_{ui} - 0)\cdot 0 + 2\lambda\cdot 0 = 0, \qquad \frac{\partial \ell_{ui}}{\partial V_i} = -2(\tilde r_{ui} - 0)\cdot 0 + 2\lambda\cdot 0 = 0$$
+
+Así que $U_u \leftarrow U_u + 0$ y $V_i \leftarrow V_i + 0$: el paso no hace nada y el modelo se queda en el mismo punto para siempre.
+
+
+3. **¿Y si todas las columnas empiezan iguales?**
+$$\frac{\partial \ell_{ui}}{\partial U_u}\Bigg|_{U_u = (a,\ a),\ V_i = (b,\ b)} = -2(\tilde r_{ui} - 2ab)\,(b,\ b) + 2\lambda\,(a,\ a)$$
+
+$$\frac{\partial \ell_{ui}}{\partial V_i}\Bigg|_{U_u = (a,\ a),\ V_i = (b,\ b)} = -2(\tilde r_{ui} - 2ab)\,(a,\ a) + 2\lambda\,(b,\ b)$$
+
+Las dos componentes de cada gradiente son iguales, así que el paso suma lo mismo a las dos y siguen iguales. Por ejemplo, con $U_u = (1, 1)$, $V_i = (2, 2)$, $\tilde r_{ui} = 5$, $\eta = 0.1$ y $\lambda = 0.5$, sale $U_u = (1.15,\ 1.15)$. Como en cada paso vuelve a pasar lo mismo, las columnas no se separan nunca.
+
+Dos columnas iguales dicen lo mismo: es como tener un solo factor. Si el factor 1 fuera «intriga» y el 2 «humor», toda película tendría tanta intriga como humor y a todo usuario le gustarían igual; no se podría representar a alguien con $(2, -1)$. En el producto, $UV^\top = 2\,U_{:,1}V_{:,1}^\top$, de rango 1: con k = 2 en el código, el modelo predice como uno con k = 1. Por eso se inicializa con números aleatorios, para que cada columna empiece distinta.
+
+4. **¿Qué pasaría si actualizas V con la U ya modificada?**
+El gradiente se calcula en el punto $U_u$, $V_i$ y por tanto en la fórmula aparece el punto $U_u$, $V_i$ donde se ha calculado el gradiente y es el valor que hay que utilizar. El que se ha calculado en este paso ya no es el punto original sino el nuevo punto que ha calculado el algoritmo, donde en el paso siguiente se calculará el nuevo gradiente. Si actualizara $V_i$ con la $U_u$ nueva, ya no sería el paso de gradiente que derivé: con los números del test saldría $V_i = (2.015,\ 1.15)$ en vez de $(2.0,\ 1.15)$.
