@@ -1,3 +1,5 @@
+<!-- LTeX: language=es -->
+
 # Notas
 
 ## Sesión 02
@@ -34,7 +36,7 @@ No, desconocido es que no se calificó esa película. 0 no es posible y seria un
 ## Sesión 4
 
 1. **¿Qué diferencia hay entre películas del catálogo y películas valoradas?**
-   Las películas del catálogo son todas las que hay y que pueden recibir una valoración. Las valoradas son las películas del catálogi que han recibido una valoración. Una película sin valoraciones no aparece en la matriz y el modelo no puede aprender de ella.
+   Las películas del catálogo son todas las que hay y que pueden recibir una valoración. Las valoradas son las películas del catálogo que han recibido una valoración. Una película sin valoraciones no aparece en la matriz y el modelo no puede aprender de ella.
 2. **Con la densidad que has medido, ¿cuántas casillas de la matriz conoces de cada 100?**
    1.70
 3. **¿Qué problema tendrá un modelo con las películas de una sola valoración?**
@@ -50,14 +52,14 @@ No, desconocido es que no se calificó esa película. 0 no es posible y seria un
 ## Sesión 6
 
 1. **¿Por qué tres conjuntos y no dos?**
-   Training es para generar el modelo. Validation para seleccionar el mejor modelo y testing para test final del modelo. El modelo se tiene que evaluar con datos que no haya sido usados para hacer la elección del mismo. La evaluacion del modelo estaría inflada ya que pudo obtener una buena evaluacion simplemente por azar.
+   Training es para generar el modelo. Validation para seleccionar el mejor modelo y testing para test final del modelo. El modelo se tiene que evaluar con datos que no haya sido usados para hacer la elección del mismo. La evaluation del modelo estaría inflada ya que pudo obtener una buena evaluation simplemente por azar.
 2. **¿Qué tipo de películas desaparecen de val/test al filtrar y cómo sesga eso la evaluación?**
-   Las películas que no tengan usuario o pelicula que no haya sido usado para generar el modelo, es decir, que no hayan aparecido en training data set. Es decir pelícuals con pocas valoraciones. Si tiene una sola valoración si cae en validación o test será eliminada. Al quitarlas la valoración del modelo será mejor porque valorar películas raras es más dificil. Además, el resultado no dice nada de cómo funciona el modelo con películas raras.
+   Las películas que no tengan usuario o película que no haya sido usado para generar el modelo, es decir, que no hayan aparecido en training data set. Es decir películas con pocas valoraciones. Si tiene una sola valoración si cae en validación o test será eliminada. Al quitarlas la valoración del modelo será mejor porque valorar películas raras es más difícil. Además, el resultado no dice nada de cómo funciona el modelo con películas raras.
 
 ## Sesión 7
 
 1. **¿Por qué RMSE castiga más los errores grandes?**
-   Porque cada error se eleva al cuadrado. Si el error se duplica su aportacion a mae se duplica pero su aportación a la suma de cuadrados se cuadriplica
+   Porque cada error se eleva al cuadrado. Si el error se duplica su aportación a mae se duplica pero su aportación a la suma de cuadrados se cuadriplica
    
 2. **Construye dos vectores de error con el mismo MAE y distinto RMSE.**
    error1 = (1, 1, 1)
@@ -87,13 +89,13 @@ $$b_i = \sum_{u \in R(i)} \frac{r_{ui} - \mu}{\lambda + n_i} = \sum_{u \in R(i)}
 \frac{n_i}{(\lambda + n_i)}\sum_{u \in R(i)}\frac{(r_{ui} - \mu)}{n_i}
 $$
 
-Si el número de valoraciones de la película es mucho mayor $\lambda$ el modelo se fiará de los datos y predicirá la media de la película. Si el número de valoraciones es mucho menor que lambda el modelo predicirá la media global.
+Si el número de valoraciones de la película es mucho mayor $\lambda$ el modelo se fiará de los datos y predecirá la media de la película. Si el número de valoraciones es mucho menor que lambda el modelo predecirá la media global.
 Entre medias es una mezcla de las dos, y el peso de la media de la película es el factor $\frac{n_i}{\lambda + n_i}$
 
 1. **¿Coincide con el orden que predijiste? Si no, ¿qué te sorprende?**
 Si, coincide
 2. **¿Por qué mejora cada modelo al anterior?**
-El UserMean le añade al GlobalMean informacion sobre cada usuario específico. Para predecir la valoración de un usario usa la media de sus valoraciones no la media de todos las valoraciones de todos los usuarios. El BiasBaseline tiene información sobre la forma de valorar pelicuals en comparación con otros usuarios. Si tenemos un usuario con una media de valoraciones altas, UserMean valoraria cualquier película no valorada por este usuario con una valoracion alta, la media del usuario. Sin embargo BiasBaseline la valoraría como la valora la media pero teniendo en cuenta la forma de valorar de este usuario específico con respecto a los otros usuarios. Si este usuario valora más alto se vería reflejado en la valoración.
+El UserMean le añade al GlobalMean information sobre cada usuario específico. Para predecir la valoración de un usuario usa la media de sus valoraciones no la media de todos las valoraciones de todos los usuarios. El BiasBaseline tiene información sobre la forma de valorar películas en comparación con otros usuarios. Si tenemos un usuario con una media de valoraciones altas, UserMean valoraría cualquier película no valorada por este usuario con una valoración alta, la media del usuario. Sin embargo BiasBaseline la valoraría como la valora la media pero teniendo en cuenta la forma de valorar de este usuario específico con respecto a los otros usuarios. Si este usuario valora más alto se vería reflejado en la valoración.
 
 3. **Reto opcional: el RMSE de GlobalMean debería coincidir, aproximadamente, con una estadística muy conocida de las notas de validación. ¿Cuál? Pista: el RMSE de predecir siempre la media es la raíz de la media de $(r - \mu)^2$. Puedes comprobarlo con NumPy.**
 Desviación típica
@@ -101,30 +103,30 @@ Desviación típica
 4. **¿Cuánto cambia el RMSE si mueves `reg_movie` (de 0 a 10, con `reg_user` fijo)? ¿Y si mueves `reg_user` (con `reg_movie` fijo)? ¿Cuál de los dos $\lambda$ importa más, y por qué, teniendo en cuenta que cada usuario tiene al menos 20 valoraciones y que la mediana por película es 3?**
 
 si mueves reg_movie dejando reg_user fijo cambia más o menos 0.025 y mueves reg_user y dejas reg_movie fijo no cambia nada. Importa más reg_movie. 
-Pasa porque el modelo da valoraciones usando una mezcla de la media global y la media de la pelicula o del usuario. Lambda controla si tiende más a la media global o a la de las películas. Si tienes más valoracions por película o usuario que lambda usará más la media por película o usuario y si es menos la global.
+Pasa porque el modelo da valoraciones usando una mezcla de la media global y la media de la película o del usuario. Lambda controla si tiende más a la media global o a la de las películas. Si tienes más valoraciones por película o usuario que lambda usará más la media por película o usuario y si es menos la global.
 Todos los usuarios tienen al menos 20 notas, más que cualquier $\lambda$ entre 0 y 10, así que reg_user casi no cambia nada. La mitad de las películas tiene 3 o menos, así que reg_movie sí cambia mucho.
 
 ## Sesión 9
 1. **¿qué significa describir una película con $k$ números?**
-significa extraer unos factores de los datos y representar las valoraciones de un usuario mediante una combinacion lineal de esos factores. Entonces en vez de tener n numeros que representan las vsloraciones de un usario tendriamos k numeros uno por cada factor y donde k sería menor que n. Basicamente queremos encontrar reducción de dimensión donde los axis nuevos que son los factores tengan un sentido posiblemente gusto por terror o comedia y si fueran películas seria la temática de la película
+significa extraer unos factores de los datos y representar las valoraciones de un usuario mediante una combinación lineal de esos factores. Entonces en vez de tener n números que representan las valoraciones de un usuario tendríamos k números uno por cada factor y donde k sería menor que n. Básicamente queremos encontrar reducción de dimensión donde los axis nuevos que son los factores tengan un sentido posiblemente gusto por terror o comedia y si fueran películas seria la temática de la película
 2. **¿Por qué $U_u$ y $V_i$ tienen la misma longitud?**
-por que necesitamos compararlos haciendo producto escalar entre ellos y contienen además en cada fila la representacion de un usuario/película en términos de los factores, la posición $j$ de los dos vectores habla del mismo factor. En el usuario, cuánto le gusta ese factor; en la película, cuánto lo tiene.
+por que necesitamos compararlos haciendo producto escalar entre ellos y contienen además en cada fila la representation de un usuario/película en términos de los factores, la posición $j$ de los dos vectores habla del mismo factor. En el usuario, cuánto le gusta ese factor; en la película, cuánto lo tiene.
 3. **¿Por qué el RMSE calculado sobre los residuos es igual al calculado sobre las notas?**
 
 $$\text{Sobre notas:}\quad r_{ui} - (\mu + b_u + b_i + U_u \cdot V_i) = r_{ui} - \mu - b_u - b_i - U_u \cdot V_i$$
 
 $$\text{Sobre residuos:}\quad (r_{ui} - \mu - b_u - b_i) - U_u \cdot V_i = r_{ui} - \mu - b_u - b_i - U_u \cdot V_i$$
 
-El error de cada pareja es el mismo de las dos formás. Como el RMSE solo depende de los errores (la raíz de la media de sus cuadrados), sale igual.
+El error de cada pareja es el mismo de las dos formas. Como el RMSE solo depende de los errores (la raíz de la media de sus cuadrados), sale igual.
 
 
 $$UV^\top = \sum_{j=1}^{k} U_{:,j}\, V_{:,j}^\top$$
 
 1. **¿Por qué cada sumando $U_{:,j}\, V_{:,j}^\top$ tiene rango 1?**
-Porque es una multiplicacion columna x fila y por tanto cada fila de la matriz es un multiplo de la fila inicial donde el multiplicador es el coeficiente correspondiente del vector columna.
+Porque es una multiplication columna x fila y por tanto cada fila de la matriz es un múltiplo de la fila inicial donde el multiplicador es el coeficiente correspondiente del vector columna.
 
 2. **¿Por qué la suma tiene rango $\le k$?**
-podemos ver cada fila como combinacion lineal de k vectores filas donde los coeficientes son los de cada usuario para cada factor por tanto como mucho podrá haber k filas linealmente independientes
+podemos ver cada fila como combination lineal de k vectores filas donde los coeficientes son los de cada usuario para cada factor por tanto como mucho podrá haber k filas linealmente independientes
 
 3. **¿Cuántos números tiene el modelo frente a usuarios × películas?**
 $U$ tiene $n_{\text{users}} \cdot k$ números y $V$ tiene $n_{\text{movies}} \cdot k$, así que el modelo tiene
@@ -145,7 +147,7 @@ Min control first singular value: 36.81
 el $\sigma_1$ real queda por debajo de los controles, así que el barajado cambia algo más que los gustos
 
 2. **Si la hipótesis es correcta, ¿qué esperas ver al comparar la submatriz densa con su control?**
-Lo contrario que antes las curvas deberian separarse al principio y ser  similares hacia el final.
+Lo contrario que antes las curvas deberían separarse al principio y ser  similares hacia el final.
 Si divergen al principio quedando la matriz real por encima al principio lo que indica que $\sigma_1$ recoge algo que el barajado no reproduce. En todo el resto de tramos la curva de la matriz de control queda por encima de la matriz real.
 El $\sigma_1$ real (10,64) supera el máximo de 20 controles (8,70; mínimo 7,67), así que esa diferencia difícilmente es casualidad del barajado. El resto del espectro no lo he comprobado.
 
@@ -220,3 +222,13 @@ Dos columnas iguales dicen lo mismo: es como tener un solo factor. Si el factor 
 
 4. **¿Qué pasaría si actualizas V con la U ya modificada?**
 El gradiente se calcula en el punto $U_u$, $V_i$ y por tanto en la fórmula aparece el punto $U_u$, $V_i$ donde se ha calculado el gradiente y es el valor que hay que utilizar. El que se ha calculado en este paso ya no es el punto original sino el nuevo punto que ha calculado el algoritmo, donde en el paso siguiente se calculará el nuevo gradiente. Si actualizara $V_i$ con la $U_u$ nueva, ya no sería el paso de gradiente que derivé: con los números del test saldría $V_i = (2.015,\ 1.15)$ en vez de $(2.0,\ 1.15)$.
+
+## Sesión 13
+
+1. **¿Cómo esperas que se muevan las curvas de train y de validación a lo largo de las épocas?**
+Las dos curvas deberían de decrecer. La curva de training debería decrecer en todas las épocas. La de validación debería decrecer hasta una "época mejor" y a partir de ahí empezar a crecer. Esto se debe a que el modelo empieza a memorizar los datos de training y por tanto no es capaz o cada vez generaliza menos y por tanto su predicción en los residuos de validación será peor. Usando un valor de regularización que permita al modelo generalizar y no solo memorizar los valores de train (reg = 0.1) se observa que las curvas hacen lo que se describe en la predicción. Con reg = 0.05 el modelo deja a los factores mas libertad es decir no los intenta forzar a que sean pequeños, y por tanto el modelo tenderá a memorizar los datos de training y por tanto el error en validación no decrecerá.
+
+2. **¿En qué se parecerá o se diferenciará de lo que viste con la SVD truncada?**
+En este caso la curva de validación debería decrecer en cada época. La SVD truncada intentaba ajustar unos residuos que eran 0 para los valores no observados y tanto si usábamos un k pequeño como grande siempre el valor del modelo para el residuo de estos pares no observados era cercano a cero, por tanto similar al modelo baseline. Ahora lo que se hace es ajustar los valores de los residuos observados solamente y los factores que se encuentran de esta manera no están forzados a ajustar los residuos no observados a 0 y por tanto se espera que la predicción de los residuos no observados usando estos factores del modelo sea más similar a los valores reales.
+**Observación.** No se cumplió. Con reg = 0.1, el mejor RMSE de validación de SGD es 0.8483 (época 51). Mejora al baseline de sesgos (0.8554), pero queda prácticamente igual que la SVD truncada con k = 20 (0.8474), incluso un poco peor. Una diferencia de 0.001 es tan pequeña que podría deberse a la semilla; lo comprobaré en la sesión 16 repitiendo con varias `model_seed`. Con esta configuración, ajustar solo los residuos observados no ha bastado para mejorar a la SVD truncada. Queda por ver si cambiando reg, k o lr cambia el resultado.
+

@@ -82,3 +82,22 @@ Bias baseline (predicted residual 0): validation RMSE 0.8554.
 The training RMSE falls steadily with k, from 0.7956 at k = 1 to 0.4283 at k = 100, because the truncated SVD approximates the training residual matrix more closely as k grows. The validation RMSE barely moves: its best value, 0.8474 at k = 20, is less than 0.01 below the bias baseline. The reason is the zero filling. Validation pairs are empty cells of the training matrix, stored as 0. With small k, the approximation of an almost all-zero matrix is small everywhere, and with large k it reproduces those zeros. In both cases, the predicted residuals for validation pairs stay close to 0, so the model predicts almost the same ratings as the biases alone.
 
 ![Truncated SVD: RMSE vs k](reports/figures/svd_k.png)
+
+## Matrix factorization with SGD
+
+Same residuals as the truncated SVD, but the loss only uses the observed training ratings, with no zero filling:
+
+$$L(U,V) = \sum_{(u,i)\in\text{train}}\Big[(\tilde r_{ui} - U_u\cdot V_i)^2 + \lambda\big(\lVert U_u\rVert^2 + \lVert V_i\rVert^2\big)\Big]$$
+
+Configuration (`configs/sgd.json`): k = 10, lr = 0.01, reg = 0.1, scale = 0.1, patience = 30, model seed = 0, n_epochs = 500.
+
+![SGD learning curve](reports/figures/learning_curve_sgd.png)
+
+| | Value |
+|---|---|
+| Best epoch | 51 |
+| Validation RMSE at best epoch | 0.8483 |
+| Bias baseline (validation) | 0.8554 |
+| Time per epoch | 0.47 s |
+
+Validation stops improving after epoch 51. There is overfitting as the validation error increases while the training error keeps decreasing. With reg = 0.05, the validation curve stayed flat at the baseline; with reg = 0.1 it went down to 0.8483, so the regularization is the first hyperparameter I would explore.
