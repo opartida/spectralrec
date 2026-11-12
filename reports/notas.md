@@ -232,3 +232,27 @@ Las dos curvas deberían de decrecer. La curva de training debería decrecer en 
 En este caso la curva de validación debería decrecer en cada época. La SVD truncada intentaba ajustar unos residuos que eran 0 para los valores no observados y tanto si usábamos un k pequeño como grande siempre el valor del modelo para el residuo de estos pares no observados era cercano a cero, por tanto similar al modelo baseline. Ahora lo que se hace es ajustar los valores de los residuos observados solamente y los factores que se encuentran de esta manera no están forzados a ajustar los residuos no observados a 0 y por tanto se espera que la predicción de los residuos no observados usando estos factores del modelo sea más similar a los valores reales.
 **Observación.** No se cumplió. Con reg = 0.1, el mejor RMSE de validación de SGD es 0.8483 (época 51). Mejora al baseline de sesgos (0.8554), pero queda prácticamente igual que la SVD truncada con k = 20 (0.8474), incluso un poco peor. Una diferencia de 0.001 es tan pequeña que podría deberse a la semilla; lo comprobaré en la sesión 16 repitiendo con varias `model_seed`. Con esta configuración, ajustar solo los residuos observados no ha bastado para mejorar a la SVD truncada. Queda por ver si cambiando reg, k o lr cambia el resultado.
 
+## Sesión 14
+
+1. **¿Por qué, para que ALS minimice la misma pérdida que SGD, hay que usar $\lambda' = n_u\,\lambda$?**
+En ALS la penalización $\lambda'\lVert U_u\rVert^2$ aparece una sola vez por usuario, pero SGD minimiza una suma en la que aparece la penalización $\lambda\lVert U_u\rVert^2$ tantas veces como notas tenga el usuario. Por esto para que las pérdidas sean equivalentes se toma $\lambda' = n_u\,\lambda$.
+
+2. **¿Cuántas iteraciones crees que necesitará ALS, cuánto tardará cada una y cómo crees que saldrá su mejor RMSE de validación? ¿Por qué?**
+2 iteraciones, una para obtener U con una V aleatoria y el V correspondiente para esta U y otra para obtener U con mejor V obtenida en paso anterior y V asociada a esta mejor U y cada una tardará lo que tarde el paquete matemático en resolver el sistema de ecuaciones. Tardará menos que SGD ya que SGD hace un paso por cada nota y ALS hace un paso por cada bloque total de notas de cada usuario. Saldrá un RMSE igual o similar al obtenido mediante SGD porque los dos usan el mismo método para aproximar los residuos que es aproximando los factores pero difieren en cómo obtienen esos factores. Resultados del run:
+seconds: 7.33
+time per epoch: 0.12
+best epoch: 30
+RMSE de validación de ALS 0.8526, frente a 0.8483 de SGD
+RMSE de train 0.5608, frente a 0.7032 de SGD
+No se ha cumplido la predicción del número de iteraciones. Ha habido al menos 30. Se cumplió la predicción del tiempo por iteración, 0.12 frente a 0.47 de SGD. ALS encuentra el valor exacto de los factores en cada medio paso por tanto ajusta mejor a los datos de training y es esperable que su error en validación sea mayor que el de SGD. SGD no llegó al mínimo, lo paró el parámetro patience que para el algoritmo si no ha mejorado el error de validación durante un número patience de iteraciones. Una parada temprana puede resultar en mejor generalización y un error en validación menor.
+
+3. **¿Por qué $F^\top F + \lambda I$ es invertible si $\lambda > 0$?**
+$$x^\top(F^\top F + \lambda I)\,x = x^\top F^\top F x + \lambda\, x^\top x = (Fx)^\top(Fx) + \lambda\, x^\top x = \lVert Fx\rVert^2 + \lambda\lVert x\rVert^2$$
+Si $x \neq0$  $\lVert Fx\rVert^2$  es mayor o igual que 0 y  $\lambda\lVert x\rVert^2 es mayor que 0. La suma es por tanto mayor que 0. Si la matriz no fuera invertible, existiría un $x \neq 0$ con $(F^\top F + \lambda I)\,x = 0$ y $x^\top(F^\top F + \lambda I)\,x$ sería 0 y acabamos de ver que esto nunca sucede.
+
+4. **¿Por qué solve y no inv?**
+Porque solve es más eficiente y además acumula menos errores de redondeo. Solve utiliza factorización LU y no calcula la inversa de la matriz explícitamente.
+
+5. **¿Por qué un medio paso de ALS no puede empeorar la pérdida de train? ¿Le pasa lo mismo a una época de SGD?**
+Porque este medio paso soluciona las ecuaciones exactamente para U o V dado según el paso y por tanto encuentra el mejor U o V, es decir el U o V que minimiza el loss. La U o V que había antes del medio paso también era una de las candidatas, así que la elegida es, como mínimo, igual de buena: la pérdida no puede subir.
+SGD podría incrementar el error total al reducir el error de una sola nota en cada iteración. También podría pasar que si lr es grande el paso en la dirección opuesta del gradiente sea demasiado grande y nos encontremos en un punto donde el error total ha incrementado.

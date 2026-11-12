@@ -1,0 +1,11 @@
+{
+  "model": "als",
+  "split_seed": 42,
+  "model_seed": 0,
+  "k": 10,
+  "reg": 0.1,
+  "scale": 0.1,
+  "n_epochs": 500,
+  "patience": 30,
+  "weighted": true
+}

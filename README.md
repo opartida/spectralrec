@@ -101,3 +101,32 @@ Configuration (`configs/sgd.json`): k = 10, lr = 0.01, reg = 0.1, scale = 0.1, p
 | Time per epoch | 0.47 s |
 
 Validation stops improving after epoch 51. There is overfitting as the validation error increases while the training error keeps decreasing. With reg = 0.05, the validation curve stayed flat at the baseline; with reg = 0.1 it went down to 0.8483, so the regularization is the first hyperparameter I would explore.
+
+## Matrix factorization with ALS
+
+Same loss as SGD with weighted = true using ALS to minimize it:
+
+$$L(U,V) = \sum_{(u,i)\in\text{train}}\Big[(\tilde r_{ui} - U_u\cdot V_i)^2 + \lambda\big(\lVert U_u\rVert^2 + \lVert V_i\rVert^2\big)\Big]$$
+
+Configuration (`configs/als.json`): k = 10, weighted = true, reg = 0.1, scale = 0.1, patience = 30, model seed = 0, n_epochs = 500.
+
+![ALS learning curve](reports/figures/learning_curve_als.png)
+
+| | Value |
+|---|---|
+| Best iteration | 30 |
+| Validation RMSE at best iteration | 0.8526 |
+| Bias baseline (validation) | 0.8554 |
+| Time per iteration | 0.12 s |
+
+Comparison with SGD on the same split (seed 42), with the same k = 10 and the same loss (reg = 0.1):
+
+| | SGD | ALS |
+|---|---|---|
+| Best epoch / iteration | 51 | 30 |
+| Validation RMSE | 0.8483 | 0.8526 |
+| Training RMSE | 0.7032 | 0.5608 |
+| Time per epoch / iteration | 0.47 s | 0.12 s |
+| Total training time | 38.1 s | 7.3 s |
+
+Both methods minimize the same loss, but ALS solves each half step exactly, so it gets much closer to the minimum of the training loss: its training RMSE (0.5608) is much lower than SGD's (0.7032). Getting closer to that minimum also means fitting the training noise more, and ALS ends up slightly worse on validation (0.8526 vs 0.8483). SGD was stopped at epoch 51 by early stopping, which watches the validation error and stops after `patience` epochs without improvement. Stopping before the minimum acts as extra regularization on top of λ. ALS is also about five times faster: 0.12 s per iteration against 0.47 s per epoch, and 7.3 s in total against 38.1 s.
