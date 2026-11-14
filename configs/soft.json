@@ -1,0 +1,6 @@
+{
+  "model": "soft",
+  "split_seed": 42,
+  "max_iter": 300,
+  "tol": 1e-8
+}

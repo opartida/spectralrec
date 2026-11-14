@@ -130,3 +130,50 @@ Comparison with SGD on the same split (seed 42), with the same k = 10 and the sa
 | Total training time | 38.1 s | 7.3 s |
 
 Both methods minimize the same loss, but ALS solves each half step exactly, so it gets much closer to the minimum of the training loss: its training RMSE (0.5608) is much lower than SGD's (0.7032). Getting closer to that minimum also means fitting the training noise more, and ALS ends up slightly worse on validation (0.8526 vs 0.8483). SGD was stopped at epoch 51 by early stopping, which watches the validation error and stops after `patience` epochs without improvement. Stopping before the minimum acts as extra regularization on top of λ. ALS is also about five times faster: 0.12 s per iteration against 0.47 s per epoch, and 7.3 s in total against 38.1 s.
+
+
+## Nuclear norm regularization with Soft-Impute
+
+Compute X matrix by copying the observed residual values and the rest 0 or a chosen initialization matrix. Compute SVD of X, shrink its singular values by subtracting $\lambda$ from them and keep factors with resulting singular value positive, compute Z from kept factors and shrunk singular values and compute new X by copying the observed residuals to Z. Iterate until the change in the values of Z from previous Z squared relative to the norm of Z also squared is smaller than tol or a maximum number of iterations is reached.
+
+$$L(Z) =\ \tfrac12 \sum_{(u,i)\in\text{train}}(\tilde r_{ui} - Z_{ui})^2 + \lambda\lVert Z\rVert_*$$
+
+Configuration (`configs/soft.json`): max_iter = 300, tol = 1e-8, split_seed = 42. The $\lambda$ are chosen from a list that starts at the maximum singular value of the residual matrix of train with zeros in the cells without rating, and ends at this singular value divided by 100 with 10 elements evenly spaced on a log scale in total. For each $\lambda$ an initialization matrix is provided being the Z matrix solution computed for the previous $\lambda$.
+
+
+|        λ | rank | RMSE train | RMSE val | seconds |
+|----------|------|------------|----------|---------|
+|   35.545 |    0 |     0.8091 |   0.8554 |     0.5 |
+|   21.309 |   13 |     0.7609 |   0.8470 |    16.6 |
+|   12.774 |   51 |     0.6187 |   0.8377 |    35.9 |
+|    7.658 |   88 |     0.4409 |   0.8413 |    63.0 |
+|    4.591 |  114 |     0.2915 |   0.8484 |    96.6 |
+|    2.752 |  129 |     0.1844 |   0.8544 |   120.4 |
+|    1.650 |  140 |     0.1139 |   0.8589 |   115.8 |
+|    0.989 |  147 |     0.0696 |   0.8620 |    89.5 |
+|    0.593 |  158 |     0.0422 |   0.8639 |    60.7 |
+|    0.355 |  172 |     0.0255 |   0.8649 |    36.0 |
+
+![Soft-Impute: RMSE and rank vs λ](reports/figures/softimpute_path.png)
+
+At the first value, λ = σ₁ = 35.545, every singular value is shrunk to zero: Z is the zero matrix (rank 0) and the validation RMSE equals the bias baseline. As λ decreases, Z keeps more singular values and its rank grows up to 172. The training RMSE keeps falling, down to 0.0255, but the validation RMSE reaches its minimum at λ = 12.774 (0.8377, rank 51) and rises below it. From λ ≈ 1.65 on, it is worse than the baseline: small values of λ overfit.
+
+The best validation RMSE, 0.8377, beats the bias baseline (0.8554) and all the previous models: truncated SVD 0.8474 (k = 20), SGD 0.8483 and ALS 0.8526. The comparison favors Soft-Impute, though: it was tuned over 10 values of λ, while SGD and ALS were trained with hand-picked values of reg and might improve with a proper search. At the best λ, Soft-Impute uses 51 factors, more than SGD and ALS (k = 10) or truncated SVD (k = 20), but shrunk instead of whole: truncated SVD with 50 whole factors gave 0.8490, worse than with 20.
+
+Each iteration takes about 0.5 s, the time of one SVD of the full matrix, so each λ takes roughly its number of iterations times 0.5 s. The time per λ grew until λ ≈ 2.75 and then fell, probably because of the warm start: for the smaller values of λ, the solution of the previous λ is already close to the new one, so fewer iterations are needed.
+
+
+
+### ALS and Soft-Impute solve the same problem
+
+$$\lVert Z\rVert_* = \min_{AB^\top = Z}\ \tfrac12\big(\lVert A\rVert_F^2 + \lVert B\rVert_F^2\big)$$
+
+The regularization term in ALS, $\big(\lVert A\rVert_F^2 + \lVert B\rVert_F^2\big)$, is double the regularization term in Soft-Impute, $\lVert Z\rVert_*$, for the factorization that is chosen by ALS at the minimum. As the error term is also double, ALS and Soft-Impute end up choosing the same Z.
+
+This equivalence between these two models was checked in an experiment. A synthetic matrix of 30 users and 20 movies is computed from two random matrices with two columns, so the final matrix has rank 2 and some noise added to this matrix. ALS is trained on 300 ratings with weighted = False, k=20 and reg=0.01. Soft-Impute is trained on the same data with the same lambda as the reg parameter in ALS. 
+
+The computed losses below show that ALS loss is exactly double the Soft-Impute loss:
+
+ALS loss: 0.1833334
+
+Soft-Impute loss: 0.0916667

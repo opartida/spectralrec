@@ -226,7 +226,7 @@ El gradiente se calcula en el punto $U_u$, $V_i$ y por tanto en la fórmula apar
 ## Sesión 13
 
 1. **¿Cómo esperas que se muevan las curvas de train y de validación a lo largo de las épocas?**
-Las dos curvas deberían de decrecer. La curva de training debería decrecer en todas las épocas. La de validación debería decrecer hasta una "época mejor" y a partir de ahí empezar a crecer. Esto se debe a que el modelo empieza a memorizar los datos de training y por tanto no es capaz o cada vez generaliza menos y por tanto su predicción en los residuos de validación será peor. Usando un valor de regularización que permita al modelo generalizar y no solo memorizar los valores de train (reg = 0.1) se observa que las curvas hacen lo que se describe en la predicción. Con reg = 0.05 el modelo deja a los factores mas libertad es decir no los intenta forzar a que sean pequeños, y por tanto el modelo tenderá a memorizar los datos de training y por tanto el error en validación no decrecerá.
+Las dos curvas deberían de decrecer. La curva de training debería decrecer en todas las épocas. La de validación debería decrecer hasta una "época mejor" y a partir de ahí empezar a crecer. Esto se debe a que el modelo empieza a memorizar los datos de training y por tanto no es capaz o cada vez generaliza menos y por tanto su predicción en los residuos de validación será peor. Usando un valor de regularización que permita al modelo generalizar y no solo memorizar los valores de train (reg = 0.1) se observa que las curvas hacen lo que se describe en la predicción. Con reg = 0.05 el modelo deja a los factores más libertad es decir no los intenta forzar a que sean pequeños, y por tanto el modelo tenderá a memorizar los datos de training y por tanto el error en validación no decrecerá.
 
 2. **¿En qué se parecerá o se diferenciará de lo que viste con la SVD truncada?**
 En este caso la curva de validación debería decrecer en cada época. La SVD truncada intentaba ajustar unos residuos que eran 0 para los valores no observados y tanto si usábamos un k pequeño como grande siempre el valor del modelo para el residuo de estos pares no observados era cercano a cero, por tanto similar al modelo baseline. Ahora lo que se hace es ajustar los valores de los residuos observados solamente y los factores que se encuentran de esta manera no están forzados a ajustar los residuos no observados a 0 y por tanto se espera que la predicción de los residuos no observados usando estos factores del modelo sea más similar a los valores reales.
@@ -248,7 +248,7 @@ No se ha cumplido la predicción del número de iteraciones. Ha habido al menos 
 
 3. **¿Por qué $F^\top F + \lambda I$ es invertible si $\lambda > 0$?**
 $$x^\top(F^\top F + \lambda I)\,x = x^\top F^\top F x + \lambda\, x^\top x = (Fx)^\top(Fx) + \lambda\, x^\top x = \lVert Fx\rVert^2 + \lambda\lVert x\rVert^2$$
-Si $x \neq0$  $\lVert Fx\rVert^2$  es mayor o igual que 0 y  $\lambda\lVert x\rVert^2 es mayor que 0. La suma es por tanto mayor que 0. Si la matriz no fuera invertible, existiría un $x \neq 0$ con $(F^\top F + \lambda I)\,x = 0$ y $x^\top(F^\top F + \lambda I)\,x$ sería 0 y acabamos de ver que esto nunca sucede.
+Si $x \neq0$  $\lVert Fx\rVert^2$  es mayor o igual que 0 y  $\lambda\lVert x\rVert^2$ es mayor que 0. La suma es por tanto mayor que 0. Si la matriz no fuera invertible, existiría un $x \neq 0$ con $(F^\top F + \lambda I)\,x = 0$ y $x^\top(F^\top F + \lambda I)\,x$ sería 0 y acabamos de ver que esto nunca sucede.
 
 4. **¿Por qué solve y no inv?**
 Porque solve es más eficiente y además acumula menos errores de redondeo. Solve utiliza factorización LU y no calcula la inversa de la matriz explícitamente.
@@ -256,3 +256,68 @@ Porque solve es más eficiente y además acumula menos errores de redondeo. Solv
 5. **¿Por qué un medio paso de ALS no puede empeorar la pérdida de train? ¿Le pasa lo mismo a una época de SGD?**
 Porque este medio paso soluciona las ecuaciones exactamente para U o V dado según el paso y por tanto encuentra el mejor U o V, es decir el U o V que minimiza el loss. La U o V que había antes del medio paso también era una de las candidatas, así que la elegida es, como mínimo, igual de buena: la pérdida no puede subir.
 SGD podría incrementar el error total al reducir el error de una sola nota en cada iteración. También podría pasar que si lr es grande el paso en la dirección opuesta del gradiente sea demasiado grande y nos encontremos en un punto donde el error total ha incrementado.
+
+
+## Sesión 15
+
+1. **¿Saldrán iguales el objetivo de ALS (`weighted=False`, k = 20) y el de Soft-Impute con el mismo λ? Si no, ¿qué relación esperas entre los dos números y por qué?**
+Soft va a depender del tamaño de los singular value y reg porque puede ser que soft acabe con más o menos factores que als dependiendo de esto. Si acaba con más se ajustará mejor a los datos y su objetivo será menos y al revés si acaba con menos factores.
+No se cumplió la predicción. El objetivo de soft es justo la mitad que el de als. El objetivo de soft sale la mitad ya que el término de la suma de los errores al cuadrado está multiplicado por 1/2 y la penalización es la suma de los valores singulares y sabemos que esta suma es igual a la mitad de la suma de los elementos al cuadrado de los factores A y B. Pero los dos alcanzan el mínimo en el mismo Z.
+
+2. **Al bajar λ, ¿qué pasará con el rango de Z y con los RMSE de train y de validación? ¿Por qué?**
+Al bajar $\lambda$ el modelo tiene más libertad y por tanto ajustará mejor los datos de train. Como $\lambda$ baja esto hace que en cada iteración el modelo pueda retener más factores y por lo tanto el rango aumenta. El RMSE de train y validación bajará al ir reduciendo $\lambda$ hasta cierto $\lambda$ a partir del cual el error de validación empezará a subir
+
+|        λ | rank | RMSE train | RMSE val | seconds |
+|----------|------|------------|----------|---------|
+|   35.545 |    0 |     0.8091 |   0.8554 |     0.5 |
+|   21.309 |   13 |     0.7609 |   0.8470 |    16.6 |
+|   12.774 |   51 |     0.6187 |   0.8377 |    35.9 |
+|    7.658 |   88 |     0.4409 |   0.8413 |    63.0 |
+|    4.591 |  114 |     0.2915 |   0.8484 |    96.6 |
+|    2.752 |  129 |     0.1844 |   0.8544 |   120.4 |
+|    1.650 |  140 |     0.1139 |   0.8589 |   115.8 |
+|    0.989 |  147 |     0.0696 |   0.8620 |    89.5 |
+|    0.593 |  158 |     0.0422 |   0.8639 |    60.7 |
+|    0.355 |  172 |     0.0255 |   0.8649 |    36.0 |
+
+
+3. **Qué pasa con train y validación, y dónde está el mejor λ.**
+El mejor $\lambda$ es 12.774 con un RMSE de 0.8377 que mejora el RMSE del baseline, 0.8554. El error de training desciende para todos los lambdas y el de validación empieza a subir a partir del mejor $\lambda$. Por debajo del mejor λ, llega a ser peor que el baseline, desde λ ≈ 1.65, mientras train baja hasta 0.03.
+
+4. **La comparación con el baseline y con los otros métodos, con el matiz de que solo Soft-Impute se ha ajustado.**
+Soft-impute se ha ajustado usando 10 valores distintos de $\lambda$ y se ha conseguido un RMSE que mejora el de todos los modelos probados hasta ahora. ALS y SGD solo se ajustaron con un valor de penalización y por tanto todavía se podría probar otros valores para ver si los modelos mejoran.
+
+5. **¿Cuánto tarda cada vuelta y por qué cambia el tiempo de cada λ?**
+Cada vuelta tarda unos 0.5 s, lo que tarda una SVD de la tabla entera, así que cada λ tarda más o menos número de vueltas × 0.5 s. El tiempo por λ subió hasta λ ≈ 2.75 y después bajó.
+Puede ser porque a partir de un $\lambda$ los Z en cada paso son más parecidos a la solución del λ anterior, el warm_start y se tarda menos en llegar al mínimo.
+
+6. **¿Por qué penalizar la suma de los $\sigma_j$ favorece el rango bajo? (Compáralo con ℓ1 y vectores dispersos.)**
+Porque hace que solo se retengan los factores cuyo valor singular es mayor que λ, los demás σ quedan exactamente en 0, y el rango es el número de σ distintos de 0, así que baja. Es lo mismo que hace ℓ1 con un vector: penalizar la suma de los valores absolutos de sus componentes deja muchas exactamente en 0, y el vector queda disperso. Aquí el vector son los $\sigma_j$, y una lista de $\sigma_j$ con muchos ceros es una matriz de rango bajo.
+
+
+7. **Truncar frente a encoger: ¿qué hace cada uno con los valores singulares grandes?**
+Truncar los mantiene siempre. Soft-impute los va modificando restándoles $\lambda$ en cada iteración, así sobreviven pero son más pequeños.
+
+8. **¿Qué rango elige Soft-Impute en el mejor λ y cómo se compara con el mejor k de SGD y ALS?**
+51 frente al que se usó para ALS y SGD, k=10 y el de SVD truncada k=20. El RMSE de validación es más pequeño para Soft-impute. Soft-Impute usa más piezas, 51, pero encogidas, mientras que la SVD truncada con 50 piezas enteras daba 0.8490, peor que con 20.
+
+**Demostración de que el mínimo es ≤ $\lVert Z\rVert_*$.** Con la SVD $Z = U\Sigma V^\top$, elijo $A = U\Sigma^{1/2}$ y $B = V\Sigma^{1/2}$.
+
+1. Es una factorización de Z:
+$$AB^\top = U\Sigma^{1/2}\,\big(V\Sigma^{1/2}\big)^\top = U\Sigma^{1/2}(\Sigma^{1/2})^\top V^\top = U\Sigma^{1/2}\Sigma^{1/2}V^\top = U\Sigma V^\top = Z$$
+
+Como $\Sigma^{1/2}$ es diagonal, es igual a su traspuesta, y $\Sigma^{1/2}\Sigma^{1/2} = \Sigma$, porque en la diagonal queda $\sqrt{\sigma_j}\,\sqrt{\sigma_j} = \sigma_j$. Lo mismo se usa en los pasos 2 y 3.
+
+2. Tamaño de A:
+$$\lVert A\rVert_F^2 = \mathrm{tr}(A^\top A) = \mathrm{tr}({\Sigma^{1/2}}^\top
+ U^\top U\Sigma^{1/2} ) = \mathrm{tr}({\Sigma^{1/2}}^\top
+ \Sigma^{1/2}) = \mathrm{tr}(\Sigma)=\sum_j \sigma_j$$
+
+3. Tamaño de B:
+$$\lVert B\rVert_F^2 = \mathrm{tr}(B^\top B) = \mathrm{tr}({\Sigma^{1/2}}^\top
+ V^\top V\Sigma^{1/2} ) = \mathrm{tr}({\Sigma^{1/2}}^\top
+ \Sigma^{1/2}) = \mathrm{tr}(\Sigma)=\sum_j \sigma_j$$
+
+4. Conclusión:
+$$\tfrac12\big(\lVert A\rVert_F^2 + \lVert B\rVert_F^2\big) = \tfrac12\big(\sum_j \sigma_j + \sum_j \sigma_j\big) = \sum_j \sigma_j$$
+Como el mínimo entre todas las factorizaciones de Z no puede ser mayor que el valor en esta, el mínimo es ≤ $\sum_j \sigma_j = \lVert Z\rVert_*$
