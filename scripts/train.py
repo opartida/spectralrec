@@ -16,16 +16,28 @@ from spectralrec.pipeline import compute_residuals, prepare_data
 from spectralrec.sgd import train_sgd
 
 
-def plot_run(history, baseline_rmse, model_name, k, run_id):
+def plot_run(history, baseline_rmse, run_config, run_id):
+    model_name = run_config["model"]
+    k = run_config["k"]
+    if model_name == "sgd":
+        extra = f"lr = {run_config['lr']}"
+    else:
+        extra = f"weighted = {run_config['weighted']}"
+
     fig, ax = plt.subplots(figsize=(12, 5))
-    ax.set_title("RMSE per epoch for training and validation")
+    ax.set_title(
+        f"{model_name.upper()} (k = {k}, reg = {run_config['reg']}, {extra}): "
+        "RMSE per epoch"
+    )
     ax.set_xlabel("epoch")
     ax.set_ylabel("RMSE")
     ax.plot(history.epoch, history.train_rmse, label="train")
     ax.plot(history.epoch, history.val_rmse, label="validation")
     ax.axhline(baseline_rmse, linestyle="--", label="bias baseline (val)", color="gray")
     ax.legend()
-    fig.savefig(f"results/figures/learning_curve_{run_id}_{model_name}_{k}.png")
+    fig.savefig(
+        f"results/figures/learning_curve_{run_id}_{model_name}_k{k}_reg{run_config['reg']}.png"
+    )
 
 
 def main():
@@ -92,8 +104,7 @@ def main():
     plot_run(
         history=history,
         baseline_rmse=baseline_rmse,
-        model_name=model_name,
-        k=run_config["k"],
+        run_config=run_config,
         run_id=run_id,
     )
 
@@ -135,7 +146,7 @@ def main():
     }
 
     np.savez(
-        f"results/{run_id}_{model_name}_{run_config['k']}.npz",
+        f"results/{run_id}_{model_name}_k{run_config['k']}_reg{run_config['reg']}.npz",
         user_factors=model.user_factors,
         movie_factors=model.movie_factors,
     )
