@@ -16,7 +16,7 @@ from spectralrec.pipeline import compute_residuals, prepare_data
 from spectralrec.sgd import train_sgd
 
 
-def plot_run(history, baseline_rmse, model_name):
+def plot_run(history, baseline_rmse, model_name, k, run_id):
     fig, ax = plt.subplots(figsize=(12, 5))
     ax.set_title("RMSE per epoch for training and validation")
     ax.set_xlabel("epoch")
@@ -25,7 +25,7 @@ def plot_run(history, baseline_rmse, model_name):
     ax.plot(history.epoch, history.val_rmse, label="validation")
     ax.axhline(baseline_rmse, linestyle="--", label="bias baseline (val)", color="gray")
     ax.legend()
-    fig.savefig(f"reports/figures/learning_curve_{model_name}.png")
+    fig.savefig(f"results/figures/learning_curve_{run_id}_{model_name}_{k}.png")
 
 
 def main():
@@ -38,6 +38,7 @@ def main():
 
     with open("configs/baseline.json") as f:
         baseline_config = json.load(f)
+    Path("results/figures").mkdir(parents=True, exist_ok=True)
     data = prepare_data(ratings_path=RATINGS_PATH, split_seed=run_config["split_seed"])
     residuals = compute_residuals(
         data, baseline_config["reg_movie"], baseline_config["reg_user"]
@@ -47,6 +48,7 @@ def main():
     n_movies = np.size(data.index_maps.movie_ids)
     start = time.perf_counter()
     model_name = run_config["model"]
+    run_id = datetime.now().strftime("%Y%m%d-%H%M%S")
     if model_name == "sgd":
         model, history = train_sgd(
             train=(data.train.users, data.train.movies, residuals.train_residuals),
@@ -87,7 +89,13 @@ def main():
     print(f"time per epoch: {(seconds / len(history.epoch)):.2f}")
     print(f"best epoch: {history.best_epoch}")
     print(f"validation rmse: {history.val_rmse}")
-    plot_run(history=history, baseline_rmse=baseline_rmse, model_name=model_name)
+    plot_run(
+        history=history,
+        baseline_rmse=baseline_rmse,
+        model_name=model_name,
+        k=run_config["k"],
+        run_id=run_id,
+    )
 
     val_mae = mae(
         residuals.val_residuals,
@@ -106,7 +114,7 @@ def main():
     ).stdout.strip()
 
     run = {
-        "run_id": datetime.now().strftime("%Y%m%d-%H%M%S"),
+        "run_id": run_id,
         "git_commit": git_commit,
         "model": run_config.get("model"),
         "split_seed": run_config.get("split_seed"),
@@ -126,9 +134,8 @@ def main():
         "seconds": seconds,
     }
 
-    Path("results").mkdir(parents=True, exist_ok=True)
     np.savez(
-        f"results/{model_name}.npz",
+        f"results/{run_id}_{model_name}_{run_config['k']}.npz",
         user_factors=model.user_factors,
         movie_factors=model.movie_factors,
     )
