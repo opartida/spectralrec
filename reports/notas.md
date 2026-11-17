@@ -321,3 +321,99 @@ $$\lVert B\rVert_F^2 = \mathrm{tr}(B^\top B) = \mathrm{tr}({\Sigma^{1/2}}^\top
 4. Conclusión:
 $$\tfrac12\big(\lVert A\rVert_F^2 + \lVert B\rVert_F^2\big) = \tfrac12\big(\sum_j \sigma_j + \sum_j \sigma_j\big) = \sum_j \sigma_j$$
 Como el mínimo entre todas las factorizaciones de Z no puede ser mayor que el valor en esta, el mínimo es ≤ $\sum_j \sigma_j = \lVert Z\rVert_*$
+
+
+## Sesión 16
+
+### Para qué
+Los hiperparámetros se buscan y eligen con los datos de validación ya que se necesitan unos datos nunca vistos, los de test, para evaluar el modelo. No podemos evaluar el modelo con el resultado de validación ya que aquí se seleccionan los mejores hiperparámetros y darían una nota que estaría sesgada ya que justamente esos hiperparámetros son buenos para esos datos de validación.
+
+### ALS: barrido de k
+Se cambia primero el parámetro k ya que en el experimento se podía ver que el modelo sobre ajustaba los datos de train ya que su RMSE bajaba mientras el RMSE de validación subía. Esto indica que se podría reducir k para evitar el sobre ajuste y ver si el RMSE de validación se reduce.
+Se probarán los valores 3, 5, y 8
+La predicción es que se arregle el sobre ajuste y por tanto para el mejor k, el que tiene menor error en validación, a partir de cierta iteración, las curvas de RMSE de train y validación estarán una cerca de la otra y serán constantes . El error de validación bajará con respecto a k=10, RMSE = 0.8526. 
+No se cumplió la predicción, en todas la nuevas curvas, k=3, k=5 y k=8 el error de train continua bajando mientras que el de validación sube o se queda constante. La diferencia en el error de validación entre k=10 y del mejor k, k=8, de estas runs 0.0002 y su error de train es mayor, 0.5802 para k=8 frente a 0.5608 para k=10. La mejor época tanto de k=3 y k=5 es 0, es decir nunca consiguen en ninguna iteración posterior reducir el error de validación y es mayor que el baseline de sesgos para k=5 (0.8557 frente a 0.8554) y muy similar (0.8552 frente a 0.8554) para k=3. Por tanto los factores en estos modelos no aportan prácticamente nada al baseline de sesgos.
+
+### ALS: barrido de reg (k = 100)
+Ahora modificamos el parámetro reg dejando k congelado y usamos k un número grande por ejemplo 100. El parámetro reg controla el rango efectivo de las matrices de factores. Partimos de un número elevado de factores y dejamos al modelos decidir cuantos de estos factores tienen que estar efectivamente activados. Cuanto mas pequeños sea el parámetro reg más factores efectivos se mantendrán lo que puede provocar overfitting. Si queremos reducir el overfitting deberíamos aumentar mas este valor. Seleccionamos reg = 0.5, 1 y 10. Necesitamos mantener k=100 y reg=0.1 y comparar con los nuevos valores de reg. El parámetro weighted debe ser True ya que si no estaríamos resolviendo el mismo problema que Soft-Impute además el modelo referencia usa True y cambiarlo cambiaría dos parámetros.
+El RMSE de train debería aumentar según aumenta el parámetro reg ya que el modelo tendrá menos factores efectivos y por tanto menos capacidad para ajustar los datos de train.
+El RMSE de validación debería ir reduciéndose y haciéndose similar al error de train y a partir de cierto valor de reg aumentará de nuevo hasta hacerse similar al error de validación del baseline de sesgos.
+
+### ALS: rango efectivo
+El rango efectivo de Z debería ir reduciéndose. Para calcular el rango efectivo usamos los valores de Z guardados en el fichero npz que guarda los factores y se calcula Z a partir de ellos como Z=AB^T. Los valores singulares cuyo valor sea pequeño, en tamaño relativo, comparado con el valor singular mas grande, σ_j / σ₁, se consideran 0 todo lo que quede por debajo de σ_j / σ₁ < 0.01.
+ La mejora vino de subir k a 100, dejando reg=0.1. La validación pasó de 0.8526 a 0.8369 al subir k, y desde reg = 0.5 queda en 0.8554, el baseline.
+ La predicción es que el mínimo estará por encima de 0.1. Viendo los datos de la run para reg=0.1 se ve que hay una distancia grande entre RMSE de train y de validación y de que la mejor época es 6, osea que paró pronto. Parece que aún falta añadir regularización ya que todavía desciende mucho train mientras validación se queda constante.
+La predicción no se cumplió. El menor RMSE sigue siendo el de k=100 y reg=0.1 con RMSE=0.8369. Al subir reg el error de validación va disminuyendo hasta un valor mínimo y a partir de ahí empieza a subir hasta llegar al RMSE del baseline de sesgos 0.8554. Para reg=0.025, 0.4, 0.5 la mejor época es la última lo que indica que podría ser que todavía quedará espacio para mejora.
+Se cumplió la predicción en el intervalo reg=[0.025-0.5]. Hay una pequeña subida al pasar de reg=0.4 a reg=0.5 pasando de un rango  3 a rango 4 pero son muy similares. Al pasar de reg=0.5 a reg=1 el rango aumenta pasando a 100 pero esto es debido a que el mayor valor singular es casi cero y por tanto todos los demás valores singulares también asi que su rango efectivo es prácticamente 0. Encaja con su RMSE de validación, 0.8554, que es el del baseline: los factores no aportan nada. Lo mismo sucede para reg=10.
+|   reg |         σ₁ | σ_j / σ₁ ≥ 0.01 | σ_j / σ₁ ≥ 0.001 |
+|-------|------------|-----------------|------------------|
+| 0.025 |   150.0112 |             100 |              100 |
+|  0.05 |   159.5961 |              93 |               97 |
+|   0.1 |   175.4870 |              84 |              100 |
+|   0.2 |   188.9115 |              26 |               27 |
+|   0.4 |    37.6195 |               3 |                5 |
+|   0.5 |    17.4744 |               4 |                6 |
+|   1.0 |     0.6175 |             100 |              100 |
+|  10.0 |     0.0007 |             100 |              100 |
+
+Para reg=0.1 pasar de un umbral 0.01 a 0.001 hace que el rango cambie mucho pasando de 84 a 100 en comparación con el caso reg=0.2, reg=0.4 y reg=0.5 que pasan de 26, 3 y 4 a 27, 5 y 6. Esto indica que en los casos reg=0.2, reg=0.4 y reg=0.5 el rango está bien definido ya que hay una separación clara de los valores singulares por lo que el corte con un valor mas pequeño no hace que cambie el rango significativamente (el número de valores singulares por encima y por debajo se mantiene). Para reg=0.1 no hay un hueco claro, porque hay muchos valores singulares cerca del corte, y por eso su rango no está bien definido: estaría entre 84 y 100.
+
+### ALS: ruido de semilla
+La predicción cambiando el hiperparámetro model_seed es que el RMSE de validación es que baje o suba pero de forma aleatoria. Es decir no espero que exista relación que no sea aleatoria entre el cambio de seed y el RMSE de validación. Espero una diferencia en tercera cifra decimal. Con un scale=0.1 la diferencia de los factores iniciales es del orden de 0.1. 
+El experimento demuestra que se diferencian en la cuarta cifra decimal. La diferencia entre el mayor y el menor es 0.83723 − 0.83680 = 0.00043. Las diferencias de los modelos k=8 y k=10 (0.0002) es la mitad del ruido de semilla y puede ser por azar sin embargo la diferencia entre k=100 y Soft-Impute (0.0008) es el doble del ruido de semilla y por tanto parece una diferencia entre modelos real.
+
+### SGD
+Se cambia primero el parámetro k para ver si el RMSE baja al aumentar k como pasó en ALS y si la parada temprana de SGD mejora el RMSE. ALS tiene regularización pero se mueve en el espacio de soluciones dando saltos mas grandes y cuando se aplica la parada temprana se ha saltado muchos modelos intermedios. En SGD en cambio la parada temprana le sirve de regularización al ir moviéndose de manera mas fina por el espacio de soluciones. Se probaran los valores k = 50, 100 y 150. La predicción es que RMSE de train disminuya y el de validación también hasta cierto k a partir del cual RMSE de validación se estancará. Se espera que la parada temprana de SGD haga que su RMSE de validación sea mejor que el 0.8369 de ALS con k = 100.
+
+|  k  | RMSE validación |
+|-----|-----------------|
+| 50  |   0.83813       |
+| 100 |   0.83750       |
+| 150 |   0.83555       |
+| 200 |   0.83692       |
+| 300 |   0.83548       |
+
+El ruido de semilla de SGD es  0.83716 − 0.83556 = 0.0016 el cuádruple que el de ALS, esto significa que en SGD cuando cambiemos parámetros cualquier diferencia menor que unas 0.0016 no significa nada. 
+Las cuatro semillas de SGD con k = 150 van de 0.83556 a 0.83716, y las de ALS con k = 100 van de 0.83680 a 0.83723. Los dos rangos se solapan: la peor semilla de SGD (0.83716) queda por encima de tres de las cuatro semillas de ALS. En media, SGD da 0.8364 y ALS 0.8370; la diferencia, 0.0006, es menor que el ruido de semilla de SGD (0.0016). Así que, en validación, SGD con k = 150 y ALS con k = 100 quedan prácticamente empatados: no se puede decir que uno sea mejor que el otro.
+
+Se cumplió la predicción, el RMSE de validación baja al aumentar k desde 0.83813 para k=50 hasta 0.83555 para k=150 y luego se estanca a partir de k=150. La diferencia entre k=150 y k=300 y k=200 no es significativa dado el ruido de semilla medido (0.0016). 
+
+Seleccionamos k = 150 porque 200 y 300 no mejoran dentro del ruido y cuestan más cálculo.
+Ahora hacemos un barrido de lr. El lr actual es 0.01 y lo modificaremos tomando a ambos lados lr=0.02, 0.04, 0.08, 0.005, 0.0025 y 0.0012. De esta forma se exploran distintos modelos moviéndonos en el espacio de soluciones con pasos de distinto tamaño. Cuando los pasos son pequeños se tarda mas en llegar al mínimo pero la parada temprana puede encontrar modelos que tengan un RMSE de validación mas bajo. Cuando lr es muy pequeño lr=0.0012 con 500 épocas estará lejos del mínimo y el RMSE de train será mas alto que el del modelo de referencia (k = 150, lr = 0.01: RMSE train= 0.4694, RMSE val = 0.8356). Con pasos mas grandes se llega antes a la solución y también se exploran posibles modelos con bajo RMSE de validación debido a la parada temprana.
+La predicción para el RMSE de train es que será igual que el del modelo de referencia (0.4695), pero el RMSE de validación será menor (0.8356 con la semilla 0). Para lr=0.01 la mejor época fue la 143. Como lr=0.0012 es 8 veces menor se espera que su mejor época sea la 1144 muy por encima de las 500 que ejecuta el algoritmo. Para lr=0.0025 su mejor época se alcanzaría en la 572 y ocurre lo mismo que en el caso anterior. En estos dos casos la mejor época podría no llegar y no habría parada temprana y por tanto no se vería el efecto de la regularización en el RMSE de validación. Por esta razón no incluiremos los valores lr=0.0025 y 0.0012. Cuando los valores son mas grandes que 0.01, lr=0.02, 0.04, 0.08 la predicción es que alcancen la mejor época en 72, 36 y 18 respectivamente. En este caso el modelo si se podrá beneficiar de parada temprana.
+
+| lr | RMSE train | RMSE val | Mejor época | Segundos |
+|---|---|---|---|---|
+| 0.005 | 0.4687 | 0.83558 | 297 | 170.8 |
+| 0.01 | 0.4695 | 0.83556 | 143 | 90.3 |
+| 0.02 | 0.4681 | 0.83553 | 74 | 54.8 |
+| 0.04 | 0.4719 | 0.83569 | 34 | 34.5 |
+| 0.08 | 0.4794 | 0.83641 | 15 | 23.9 |
+
+
+Se cumple la predicción al aumentar lr desde 0.005 hasta 0.02. Se pasa de un RMSE de train de 0.4687 para lr=0.005 a 0.4681 con lr=0.02 luego no se cumple a partir de aquí ya que aumenta hasta llegar a 0.4794 para lr=0.08. El RMSE de validación no cambia con lr: todos los valores, de 0.83553 a 0.83641, quedan dentro del ruido de semilla (0.0016). La predicción de que bajaría no se cumplió. Como el RMSE de validación es el mismo dentro del ruido para lr = 0.01 (la referencia) y lr = 0.04, pero la ejecución con 0.04 tarda 34.5 s frente a 90.3 s, nos quedamos con lr = 0.04. Aunque lr=0.08 tiene un RMSE de validación este se acerca al borde del ruido (0.83641) similar dentro de ruido semilla sin embargo es el único cuyo RMSE de train aumenta (0.4794). Es una señal de que ahí los pasos empiezan a ser demasiado grandes.
+Por ultimo se hace una búsqueda en el espacio del parámetro reg. Tiene sentido modificarlo ya que definimos de esta manera otros puntos como óptimos y de esta manera tratar de encontrar modelos que mejoren el RMSE de validación. El modelo de referencia es (k = 150, lr = 0.04 y reg = 0.1). Probaremos valores de reg a ambos lados de la referencia reg=0.025, 0.05, 0.2, 0.4. 
+Para el RMSE de validación se espera el mismo resultado que ALS un descenso hasta alcanzar un mínimo y posteriormente un ascenso. La única diferencia es que SGD tiene parada temprana y el mínimo valor alcanzado para el RMSE podría ser menor que el de ALS. Para el RMSE de train se espera que aumente al aumentar el parámetro ya que la regularización hace que e modelo tenga menos capacidad de ajustarse a los datos de train. 
+La predicción del RMSE de train se cumple, su valor aumenta según va aumentando el parámetro reg. Pasa de un valor 0.1324 para reg=0.025 a un valor de 0.8042 para reg=0.4. La predicción para el RMSE de validación también se cumple pasa de un valor 0.8479 para reg=0.025 hasta 0.8357 para reg=0.1, que es el mínimo, y luego aumenta hasta un valor 0.8553 para reg=0.4. La variación del parámetro reg no mejora el RMSE de validación del modelo referencia. Las variaciones del valor de RMSE de validación están por encima del ruido de semilla (0.0016).
+Tampoco se cumplió la predicción de que el mínimo de SGD quedaría por debajo del de ALS: con las cuatro semillas, los dos quedan empatados dentro del ruido.
+### Elección final
+
+| Modelo | Configuración elegida | RMSE val | Ruido de semilla |
+|---|---|---|---|
+| Baseline de sesgos | — | 0.8554 | — |
+| SVD truncada (sesión 11) | k = 20 | 0.8474 | — |
+| Soft-Impute (sesión 15) | λ = 12.774 | 0.8377 | — |
+| ALS | k = 100, reg = 0.1 | 0.8369 | 0.0004 |
+| SGD | k = 150, lr = 0.04, reg = 0.1 | 0.8357 | 0.0016 |
+
+Todos los modelos mejoran el RMSE de validación del modelo baseline de sesgos. El modelo SVD truncada es peor que los otros tres Soft-Impute, ALS y SGD. La diferencia entre el mejor de los tres (SGD con RMSE = 0.8357) y SVD truncada (RMSE = 0.8474) es 0.0117, siete veces mas grande que el mayor ruido medido (0.0016). Dentro del ruido semilla, Soft-Impute, ALS y SGD, son iguales.
+### Explica
+
+1. **¿Aumentar k siempre ayuda?**
+No siempre. Con regularización, reg encoge casi a cero las direcciones que sobran, así que aunque haya 150 columnas, Z usa menos. Por eso en SGD, de 150 a 300, el resultado se estanca en lugar de empeorar. Sin regularización, como en la SVD truncada, cada factor que añades cuenta entero, y a partir de cierto k empiezas a ajustar ruido.
+2. **¿Qué pasa con la distancia entre train y validación?**
+Se hace cada vez mas pequeña. Es lo que indica que se reduce el sobreajuste.
+Pero la distancia más pequeña no corresponde al mejor modelo: con reg = 0.4 la distancia es solo 0.05, y el modelo está aplanado (validación 0.8553, la del baseline). El mejor, reg = 0.1, tiene una distancia de 0.36. Lo que decide es el RMSE de validación, no la distancia.
+3. **¿Qué regularización evita el sobreajuste sin aplanar el modelo?**
+reg = 0.1, porque es el mínimo de la U del RMSE de validación (0.8357). Por debajo, con reg = 0.025, el modelo sobreajusta: el RMSE de train es 0.1324 y el de validación 0.8479. Por encima, con reg = 0.4, el modelo se aplana: el RMSE de validación es 0.8553, el mismo que el del baseline.
+En Soft-Impute y en ALS pasa lo mismo: con poca regularización el modelo sobreajusta, y con demasiada se aplana y queda en el baseline. El mejor valor es el mínimo de la U de cada modelo: λ = 12.774 en Soft-Impute y reg = 0.1 en ALS (k = 100) y en SGD.

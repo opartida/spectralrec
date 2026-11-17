@@ -177,3 +177,21 @@ The computed losses below show that ALS loss is exactly double the Soft-Impute l
 ALS loss: 0.1833334
 
 Soft-Impute loss: 0.0916667
+
+## Hyperparameter search on validation
+Starting from a working configuration, I changed one hyperparameter at a time leaving the others constant and selected the one that minimized the validation RMSE. Each run is recorded in experiments.csv with the corresponding commit. Seed noise was measured by repeating the best configuration with four different seeds.
+
+| Model | Chosen configuration | Validation RMSE | Seed noise |
+|---|---|---|---|
+| Bias baseline | — | 0.8554 | — |
+| Truncated SVD | k = 20 | 0.8474 | — (deterministic) |
+| Soft-Impute | λ = 12.774 | 0.8377 | — (deterministic) |
+| ALS | k = 100, reg = 0.1, weighted | 0.8369 | 0.0004 |
+| SGD | k = 150, lr = 0.04, reg = 0.1 | 0.8357 | 0.0016 |
+
+[reports/experiments.csv](reports/experiments.csv)
+[configs/best.json](configs/best.json)
+
+Increasing k improves the model only with regularization, because it controls the effective rank; otherwise, the model overfits. As reg increases, the validation RMSE follows a U shape: with too little regularization the model overfits, and with too much it is flattened to the bias baseline. The minimum is at reg = 0.1.
+The hyperparameter lr only affects the time it takes to train the model.
+Soft-Impute, ALS and SGD have the same performance taking into account the seed noise and truncated SVD is not as good as the others.

@@ -1,0 +1,36 @@
+{
+  "svd": {
+    "model": "svd",
+    "split_seed": 42,
+    "k": 20
+  },
+  "soft": {
+    "model": "soft",
+    "split_seed": 42,
+    "lam": 12.774,
+    "max_iter": 300,
+    "tol": 1e-8
+  },
+  "als": {
+    "model": "als",
+    "split_seed": 42,
+    "model_seed": 0,
+    "k": 100,
+    "reg": 0.1,
+    "scale": 0.1,
+    "n_epochs": 500,
+    "patience": 30,
+    "weighted": true
+  },
+  "sgd": {
+    "model": "sgd",
+    "split_seed": 42,
+    "model_seed": 0,
+    "k": 150,
+    "lr": 0.04,
+    "reg": 0.1,
+    "scale": 0.1,
+    "n_epochs": 500,
+    "patience": 30
+  }
+}
