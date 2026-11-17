@@ -190,6 +190,7 @@ Starting from a working configuration, I changed one hyperparameter at a time le
 | SGD | k = 150, lr = 0.04, reg = 0.1 | 0.8357 | 0.0016 |
 
 [reports/experiments.csv](reports/experiments.csv)
+
 [configs/best.json](configs/best.json)
 
 Increasing k improves the model only with regularization, because it controls the effective rank; otherwise, the model overfits. As reg increases, the validation RMSE follows a U shape: with too little regularization the model overfits, and with too much it is flattened to the bias baseline. The minimum is at reg = 0.1.
