@@ -197,9 +197,9 @@ Increasing k improves the model only with regularization, because it controls th
 The hyperparameter lr only affects the time it takes to train the model.
 Soft-Impute, ALS and SGD have the same performance taking into account the seed noise and truncated SVD is not as good as the others.
 
-### Frozen configuration (before opening test)
+## Frozen configuration (before opening test)
 
-Final models are trained on train + validation (split_seed = 42), with a fixed number of epochs where applicable. Code: commit `<hash>`, the commit used to run `evaluate.py`.
+Final models are trained on train + validation (split_seed = 42), with a fixed number of epochs where applicable. Code: commit `7f7f88d`, the commit used to run `evaluate.py`.
 
 | Model | Hyperparameters | Epochs | model_seed |
 |---|---|---|---|
@@ -210,4 +210,4 @@ Final models are trained on train + validation (split_seed = 42), with a fixed n
 | ALS | k = 100, reg = 0.1, weighted, scale = 0.1 | 7 | 0 |
 | SGD | k = 150, lr = 0.04, reg = 0.1, scale = 0.1 | 35 | 0 |
 
-Code: commit 7f7f88d
+I will compare SGD, the best model in validation, with the bias baseline.
