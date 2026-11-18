@@ -417,3 +417,6 @@ Pero la distancia más pequeña no corresponde al mejor modelo: con reg = 0.4 la
 3. **¿Qué regularización evita el sobreajuste sin aplanar el modelo?**
 reg = 0.1, porque es el mínimo de la U del RMSE de validación (0.8357). Por debajo, con reg = 0.025, el modelo sobreajusta: el RMSE de train es 0.1324 y el de validación 0.8479. Por encima, con reg = 0.4, el modelo se aplana: el RMSE de validación es 0.8553, el mismo que el del baseline.
 En Soft-Impute y en ALS pasa lo mismo: con poca regularización el modelo sobreajusta, y con demasiada se aplana y queda en el baseline. El mejor valor es el mínimo de la U de cada modelo: λ = 12.774 en Soft-Impute y reg = 0.1 en ALS (k = 100) y en SGD.
+
+## Sesión 17
+Para entrenar los modelos antes de evaluarlos con test se usarán los datos de train y validación juntos. Se dispone de esta manera de mas datos de entrenamiento. Con train + validación ya no hay parada temprana, porque no queda nada que vigilar y ya se determinó la mejor época durante la fase de búsqueda de los hiperparámetros asi que se entrena ese número fijo de épocas. Todos los modelos se reajustan con train + validación, incluidas la media global y los sesgos, para que la comparación sea justa.

@@ -20,7 +20,8 @@
     "scale": 0.1,
     "n_epochs": 500,
     "patience": 30,
-    "weighted": true
+    "weighted": true,
+    "epochs": 7
   },
   "sgd": {
     "model": "sgd",
@@ -31,6 +32,7 @@
     "reg": 0.1,
     "scale": 0.1,
     "n_epochs": 500,
-    "patience": 30
+    "patience": 30,
+    "epochs": 35
   }
 }

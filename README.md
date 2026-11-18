@@ -196,3 +196,16 @@ Starting from a working configuration, I changed one hyperparameter at a time le
 Increasing k improves the model only with regularization, because it controls the effective rank; otherwise, the model overfits. As reg increases, the validation RMSE follows a U shape: with too little regularization the model overfits, and with too much it is flattened to the bias baseline. The minimum is at reg = 0.1.
 The hyperparameter lr only affects the time it takes to train the model.
 Soft-Impute, ALS and SGD have the same performance taking into account the seed noise and truncated SVD is not as good as the others.
+
+### Frozen configuration (before opening test)
+
+Final models are trained on train + validation (split_seed = 42), with a fixed number of epochs where applicable. Code: commit `<hash>`, the commit used to run `evaluate.py`.
+
+| Model | Hyperparameters | Epochs | model_seed |
+|---|---|---|---|
+| Global mean | — | — | — |
+| Bias baseline | reg_movie = 3, reg_user = 3 | — | — |
+| Truncated SVD | k = 20 | — | — |
+| Soft-Impute | λ = 12.774, max_iter = 300, tol = 1e-8 | — | — |
+| ALS | k = 100, reg = 0.1, weighted, scale = 0.1 | 7 | 0 |
+| SGD | k = 150, lr = 0.04, reg = 0.1, scale = 0.1 | 35 | 0 |
