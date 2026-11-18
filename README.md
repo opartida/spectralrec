@@ -209,3 +209,5 @@ Final models are trained on train + validation (split_seed = 42), with a fixed n
 | Soft-Impute | λ = 12.774, max_iter = 300, tol = 1e-8 | — | — |
 | ALS | k = 100, reg = 0.1, weighted, scale = 0.1 | 7 | 0 |
 | SGD | k = 150, lr = 0.04, reg = 0.1, scale = 0.1 | 35 | 0 |
+
+Code: commit 7f7f88d
