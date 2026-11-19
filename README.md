@@ -211,3 +211,20 @@ Final models are trained on train + validation (split_seed = 42), with a fixed n
 | SGD | k = 150, lr = 0.04, reg = 0.1, scale = 0.1 | 35 | 0 |
 
 I will compare SGD, the best model in validation, with the bias baseline.
+
+## Test results
+
+Command: `python scripts/evaluate.py --split test`
+
+| Model | Test RMSE | Test MAE |
+|---|---|---|
+| Global mean | 1.0281 | 0.8161 |
+| Bias baseline | 0.8595 | 0.6614 |
+| Truncated SVD | 0.8488 | 0.6520 |
+| Soft-Impute | 0.8384 | 0.6421 |
+| ALS | 0.8383 | 0.6406 |
+| SGD | 0.8383 | 0.6409 |
+
+SGD scores RMSE = 0.8383 and baseline model RMSE = 0.8595. SGD outperforms baseline model by 0.0212. A paired bootstrap with 1000 resampling yields a 95% confidence interval [0.0173, 0.0250].
+
+The interval does not include 0, this means the improvement is not explained by the particular ratings that fell in the test set. SGD, ALS and Soft-Impute obtained the same RMSE value and SGD obtained the highest RMSE difference between validation (0.8357) and test (0.8383), this is due to the fact that SGD was the one that obtained the lowest RMSE in validation being then part of its validation advantage was luck.

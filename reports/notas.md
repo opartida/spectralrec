@@ -420,3 +420,30 @@ En Soft-Impute y en ALS pasa lo mismo: con poca regularización el modelo sobrea
 
 ## Sesión 17
 Para entrenar los modelos antes de evaluarlos con test se usarán los datos de train y validación juntos. Se dispone de esta manera de mas datos de entrenamiento. Con train + validación ya no hay parada temprana, porque no queda nada que vigilar y ya se determinó la mejor época durante la fase de búsqueda de los hiperparámetros asi que se entrena ese número fijo de épocas. Todos los modelos se reajustan con train + validación, incluidas la media global y los sesgos, para que la comparación sea justa.
+
+
+| Modelo | RMSE val | RMSE test |
+|---|---|---|
+| global_mean | 1.0335 | 1.0281 |
+| bias_baseline | 0.8554 | 0.8595 |
+| truncated_svd | 0.8474 | 0.8488 |
+| soft_impute | 0.8377 | 0.8384 |
+| als | 0.8369 | 0.8383 |
+| sgd | 0.8357 | 0.8383 |
+
+evaluate.py --split val reprodujo exactamente los números de la búsqueda.
+
+1. **El orden de los modelos: ¿es el mismo que en validación?**
+Si, es el mismo
+2. **Soft-Impute, ALS y SGD: ¿qué pasa con ellos en test, comparado con lo que concluiste en la sesión 16?**
+Se cumple en test, no hay ninguno mejor que el otro dentro del ruido de semilla.
+3. **SGD es el que más empeora de validación a test: de 0.8357 a 0.8383. Piensa por qué le pasa precisamente al que elegiste por ser el mejor en validación**
+Tiene sentido porque SGD al ser el elegido en validación, pudo ser porque los datos con los que se validó le favorecían de alguna manera y por eso la diferencia entre su RMSE de test y de validación es mayor que para el resto. 
+Los otros modelos también se ajustaron con validación, pero a SGD además lo elegí por ser el mejor de los tres, y es el que tiene más ruido de semilla (0.0016): parte de su ventaja en validación era suerte, y en test desaparece.
+
+### Bootstrap
+En test SGD mejora a los sesgos en 0.0212 de RMSE, con un intervalo del 95 % de [0.0173, 0.0250], obtenido con un bootstrap emparejado de 1000 remuestreos. Esta mejora no es azar debido a las notas específicas que aparecieron en test porque el intervalo final obtenido mediante bootstrap no incluye el 0.
+El ancho del intervalo, contado desde el 0.0212:
+por abajo: 0.0212 − 0.0173 = 0.0039, unas 0.004;
+por arriba: 0.0250 − 0.0212 = 0.0038, también unas 0.004.
+Así que el intervalo es, más o menos, 0.0212 ± 0.004. Ese ±0.004 es lo que podría moverse la mejora solo por qué notas cayeron en test. Comparado con el ruido de semilla (0.0016) es 2.5 veces mayor, es decir, el resultado depende más de qué notas cayeron en test que de la inicialización.

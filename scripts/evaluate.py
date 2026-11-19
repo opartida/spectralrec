@@ -72,7 +72,8 @@ def main():
 
     results.append(("global_mean", global_mean_rmse, global_mean_mae))
     results.append(("bias_baseline", bias_baseline_rmse, bias_baseline_mae))
-
+    sgd_predictions = []
+    diffs = []
     for model_name in run_config.keys():
         config = run_config[model_name]
 
@@ -145,6 +146,7 @@ def main():
                 )
                 + bias_baseline_predictions
             )
+            sgd_predictions = y_pred
             sgd_rmse = rmse(eval_data.ratings, y_pred)
             sgd_mae = mae(eval_data.ratings, y_pred)
             results.append(("sgd", sgd_rmse, sgd_mae))
@@ -194,6 +196,25 @@ def main():
 
     for model_name, rmse_value, mae_value in results:
         print(f"| {model_name:>13} | {rmse_value:>10.4f} | {mae_value:>10.4f} |")
+
+    if args.split == "test":
+        rng = np.random.default_rng(0)
+        n = len(eval_data.ratings)
+        diff = bias_baseline_rmse - sgd_rmse
+        for i in range(1000):
+            idx = rng.integers(0, n, size=n)
+
+            boot_bias_rmse = rmse(
+                eval_data.ratings[idx], bias_baseline_predictions[idx]
+            )
+
+            boot_sgd_rmse = rmse(eval_data.ratings[idx], sgd_predictions[idx])
+
+            diffs.append(boot_bias_rmse - boot_sgd_rmse)
+
+        low, high = np.percentile(diffs, [2.5, 97.5])
+        print(f"Interval low-high: [{low:.4f}, {high:.4f}]")
+        print(f"Diff RMSE baseline - RMSE SGD: {diff:.4f}")
 
 
 if __name__ == "__main__":
