@@ -227,4 +227,4 @@ Command: `python scripts/evaluate.py --split test`
 
 SGD scores RMSE = 0.8383 and baseline model RMSE = 0.8595. SGD outperforms baseline model by 0.0212. A paired bootstrap with 1000 resampling yields a 95% confidence interval [0.0173, 0.0250].
 
-The interval does not include 0, this means the improvement is not explained by the particular ratings that fell in the test set. SGD, ALS and Soft-Impute obtained the same RMSE value and SGD obtained the highest RMSE difference between validation (0.8357) and test (0.8383), this is due to the fact that SGD was the one that obtained the lowest RMSE in validation being then part of its validation advantage was luck.
+The interval does not include 0, this means the improvement is not explained by the particular ratings that fell in the test set. SGD, ALS and Soft-Impute obtained the same RMSE value and SGD obtained the highest RMSE difference between validation (0.8357) and test (0.8383), this is because SGD was selected for having the lowest validation RMSE, so part of its validation advantage was luck.
