@@ -460,3 +460,13 @@ El rango de los scores de MovieLens es [0.5-5]. Si el recomendador da scores fue
 ### Parte B: interpretación
 Solo se analizan las películas con al menos 50 notas. La fila de V de cada película se ajusta con sus notas: si una película tiene muy pocas, su posición en cada dirección se apoya en pocos datos y es casi ruido. Sin este umbral, en los extremos de cada dirección aparecerían películas poco vistas, colocadas ahí por azar y no porque representen la dirección.
 
+Los ejes se pueden interpretar como:
+- Eje 1: taquillazo de acción (*Armageddon*, *Independence Day*, *Twister*) frente a cine aclamado o de culto (*El Padrino*, *Pulp Fiction*, *Memento*).
+- Eje 2: para todos los públicos (*Toy Story*, *Aladdín*, *E.T.*) frente a para adultos (*Seven*, *American Psycho*, *Asesinos natos*).
+
+### Explica
+1. **¿Por qué los ejes de la SVD están bien definidos y los U y V de SGD no? La guía da una pista: U Vᵀ = (U Q)(V Q⁻ᵀ)ᵀ para cualquier matriz Q invertible.**
+Los factores que encuentra SGD dan la misma predicción si estos están multiplicados por cualquier matriz Q invertible (U multiplicado por Q y V por la inversa de Q transpuesta) U Vᵀ = (U Q)(V Q⁻ᵀ)ᵀ. Por eso podemos acabar teniendo factores completamente distintos dependiendo de la semilla que darán las misma predicciones. La SVD, en cambio, elige una factorización concreta entre todas, la de columnas perpendiculares ordenadas por σ, y siempre es la misma.
+
+2. **¿Por qué una lista de recomendaciones bonita no demuestra que el modelo acierte?**
+Porque lo que importa es lo que el recomendador sea capaz de acertar, es decir, si es capaz de predecir lo que un usuario valoró para una película determinada. Para esto se tiene que testear el recomendador con notas reales que el modelo no vió, de muchos usuarios. Una lista bonita no lo demuestra porque un modelo simple, como el de solo sesgos, también recomendaría clásicos famosos y bien valorados, que parecen buenas recomendaciones para cualquiera. Mirando la lista no se distingue un modelo bueno de uno mediocre.

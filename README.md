@@ -228,3 +228,40 @@ Command: `python scripts/evaluate.py --split test`
 SGD scores RMSE = 0.8383 and baseline model RMSE = 0.8595. SGD outperforms baseline model by 0.0212. A paired bootstrap with 1000 resampling yields a 95% confidence interval [0.0173, 0.0250].
 
 The interval does not include 0, this means the improvement is not explained by the particular ratings that fell in the test set. SGD, ALS and Soft-Impute obtained the same RMSE value and SGD obtained the highest RMSE difference between validation (0.8357) and test (0.8383), this is because SGD was selected for having the lowest validation RMSE, so part of its validation advantage was luck.
+
+## Recommendations and factor interpretation
+
+### Recommendations
+
+Command: `python scripts/recommend.py --user-id 17 --top-n 10`
+
+| movieId | Title | Predicted rating |
+|---|---|---|
+| 177593 | Three Billboards Outside Ebbing, Missouri (2017) | 4.67 |
+| 6460 | Trial, The (Procès, Le) (1962) | 4.63 |
+| 1041 | Secrets & Lies (1996) | 4.62 |
+| 1178 | Paths of Glory (1957) | 4.60 |
+| 1104 | Streetcar Named Desire, A (1951) | 4.59 |
+| 3451 | Guess Who's Coming to Dinner (1967) | 4.57 |
+| 2239 | Swept Away (Travolti da un insolito destino nell'azzurro mare d'Agosto) (1975) | 4.54 |
+| 1204 | Lawrence of Arabia (1962) | 4.53 |
+| 106642 | Day of the Doctor, The (2013) | 4.53 |
+| 1217 | Ran (1985) | 4.52 |
+
+The movies were recommended using the model Soft-Impute trained with all the data (train + validation + test). The movies that the user already rated are excluded. A list like the above does not imply that the model is able to predict the user ratings. The evaluation of the performance of the model is measured by the test RMSE.
+
+### Factor interpretation
+
+Command: `python scripts/interpret.py`
+
+![Movie map](reports/figures/movie_map.png)
+
+Only movies with at least 50 ratings are considered. The position of a movie on each direction is fitted from its own ratings, so for a movie with very few ratings it is mostly noise. Without this threshold, such movies would fill the extremes of each direction by chance.
+
+The first two directions can be read as:
+
+- **Axis 1:** blockbuster action (*Armageddon*, *Independence Day*, *Twister*) vs. acclaimed or cult films (*The Godfather*, *Pulp Fiction*, *Memento*).
+- **Axis 2:** family films (*Toy Story*, *Aladdin*, *E.T. the Extra-Terrestrial*) vs. films for adults (*Se7en*, *American Psycho*, *Natural Born Killers*). The label is approximate: *Schindler's List* also falls on the family side, so the axis is closer to light or consensus cinema vs. dark and violent cinema.
+
+The factors found by SGD yield the same predictions even when multiplied by any invertible matrix $Q$ (with $U$ multiplied by $Q$, and $V$ by the inverse of the transpose of $Q$): $UV^T = (UQ)(VQ^{-T})^T$. Consequently, depending on the random seed used, we may end up with entirely different factors that nonetheless produce the same predictions. SVD, by contrast, selects one specific factorization—one with orthogonal columns ordered by $\sigma$—which is always the same.
+
