@@ -447,3 +447,16 @@ El ancho del intervalo, contado desde el 0.0212:
 por abajo: 0.0212 − 0.0173 = 0.0039, unas 0.004;
 por arriba: 0.0250 − 0.0212 = 0.0038, también unas 0.004.
 Así que el intervalo es, más o menos, 0.0212 ± 0.004. Ese ±0.004 es lo que podría moverse la mejora solo por qué notas cayeron en test. Comparado con el ruido de semilla (0.0016) es 2.5 veces mayor, es decir, el resultado depende más de qué notas cayeron en test que de la inicialización.
+
+## Sesión 18
+
+
+### Parte A: recomendaciones
+Como SGD, ALS y Soft-Impute empatan y Soft-Impute se usa en la parte B se usará Soft-Impute para recomendar entrenado con todos los datos, train + validación + test. La evaluación ya terminó, así que test ya no hace falta como examen, y un recomendador real usaría toda la información disponible.
+Una película se considera valorada por un usuario si el usuario le ha puesto una nota y podrá aparecer en cualquier partición de los datos tanto es train como validación como test. 
+
+El rango de los scores de MovieLens es [0.5-5]. Si el recomendador da scores fuera de este rango se recortaran al mostrarlas, nunca al medir.
+
+### Parte B: interpretación
+Solo se analizan las películas con al menos 50 notas. La fila de V de cada película se ajusta con sus notas: si una película tiene muy pocas, su posición en cada dirección se apoya en pocos datos y es casi ruido. Sin este umbral, en los extremos de cada dirección aparecerían películas poco vistas, colocadas ahí por azar y no porque representen la dirección.
+
