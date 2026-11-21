@@ -222,5 +222,7 @@ data/processed
 data/raw
 *.pdf
 .DS_Store
-results.vscode/
+results
+.vscode/
 cspell.json
+
