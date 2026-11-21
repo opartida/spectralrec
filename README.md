@@ -1,11 +1,17 @@
 # SpectralRec
 
-Final project based on MIT 18.065.
+A low rank matrix with several of their values being unobserved or missing is completed using different approaches, Truncated SVD, SGD, ALS and Soft-Impute. The ratings are stored in a matrix of users x movies in which only 1.7% of the entries are not missing. Recommendation means filling these missing values.
 
-Goal: predict the rating a user would give to a movie, using the known
-ratings of other users and movies.
+All models below share the same mathematical structure: 
+
+$$\hat r_{ui} = \mu + b_u + b_i + U_u \cdot V_i$$
+
+where $\mu$ is the global mean, $b_u$ and $b_i$ are the user and movie biases, and $U_u$ and $V_i$ are the k-dimensional factor vectors of user $u$ and movie $i$: row $u$ of $U$ and row $i$ of $V$. The low-rank part, $U V^\top$, models the residuals that the biases leave.
 
 
+Truncated SVD keeps the k factors $U_u$ and $V_i$ with the biggest singular values of the residual matrix and discards the rest. The residual matrix has all the missing values filled with zeros.
+
+SGD, ALS and Soft-Impute minimize a loss function on the observed ratings only. In the case of SGD and ALS, the objective is to find the factors by minimizing the loss function in which the size of the factors is penalized. The goal of Soft-Impute is to directly obtain the residual matrix Z by minimizing the loss function which penalizes its nuclear norm. At each iteration it fills the missing values with the current Z, performs its SVD and subtracts the regularization parameter $\lambda$ from each singular value.
 
 ## Data
 
@@ -28,6 +34,39 @@ Source: MovieLens Latest Small (GroupLens). Downloaded on 2026-10-16.
 
 ![Ratings per movie](reports/figures/ratings_per_movie.png)
 
+The data are not included in this repository: GroupLens distributes them under their own licence (see the dataset's `README.txt`) so download them from the official source as described in `Installation and usage`.
+
+
+## Installation and usage
+```bash
+python -m pip install -e ".[dev]"
+
+python -m pytest
+```
+Download and unzip `https://files.grouplens.org/datasets/movielens/ml-latest-small.zip` into `data/raw/`, so that `data/raw/ml-latest-small/ratings.csv` exists.
+
+Run the scripts to produce the different tables and figures
+```bash
+python scripts/inspect_data.py
+python scripts/baselines.py
+python scripts/spectrum.py
+python scripts/svd_sweep.py
+python scripts/train.py --config configs/sgd.json
+python scripts/train.py --config configs/als.json
+python scripts/softimpute_path.py
+python scripts/als_vs_softimpute.py
+python scripts/effective_rank.py   # needs the k = 100 ALS runs from configs/search/
+python scripts/evaluate.py --split test
+python scripts/recommend.py --user-id 17 --top-n 10
+python scripts/interpret.py
+```
+To reproduce the hyperparameter search, run each file in configs/search/:
+```bash
+python scripts/train.py --config <file>
+```
+Each execution adds its row to 
+`reports/experiments.csv`
+
 ## Train / validation / test split
 
 - Random split (not by date): 80% train, 10% validation, 10% test.
@@ -41,7 +80,33 @@ Source: MovieLens Latest Small (GroupLens). Downloaded on 2026-10-16.
 
 Why: The model has no information about a movie (or user) that never appears in train, so it cannot predict its ratings. These are mostly rarely-rated movies, whose few ratings all fell into validation or test. Since rare movies are harder to predict, removing them makes the evaluation optimistic, and it says nothing about how the model performs on new or rare movies.
 
+Leakage is avoided in four ways:
+- The partitioning is performed only once, at the beginning, using a fixed seed, and the user and movie indices are constructed using only the training set.
+- The biases (μ, b_u, b_i) are fitted using only the training set, and the validation and test residuals are calculated based on these biases.
+- All hyperparameters (k, reg, lr, λ, and the number of epochs) were selected using only the validation set.
+- The test set was accessed only once, at the very end, using the configuration frozen beforehand in the Frozen configuration section and in commit 7f7f88d.
 
+
+## Bias baseline
+The baseline model:
+$$\hat r_{ui} = \mu + b_u + b_i$$
+
+With a fixed μ, the bias of movie i is determined by 
+$$\min_{b}\ \sum_{u \in R(i)} (r_{ui} - \mu - b)^2 + \lambda_i\, b^2
+\qquad\Longrightarrow\qquad
+b_i = \frac{\sum_{u \in R(i)} (r_{ui} - \mu)}{\lambda_i + n_i}$$
+
+
+where $R(i)$ is the set of users who rated movie i, and $n_i$ = $|R(i)|$ is the number of such users. 
+The bias of user u is computed by
+$$\min_{b}\ \sum_{i \in R(u)} (r_{ui} - \mu - b_i - b)^2 + \lambda_u\, b^2
+\qquad\Longrightarrow\qquad
+b_u = \frac{\sum_{i \in R(u)} (r_{ui} - \mu - b_i)}{\lambda_u + n_u}$$
+
+where $R(u)$ is the set of movies rated by user u, and $n_u$ = $|R(u)|$ is the number of such movies. 
+The regularization parameters, chosen on validation, are $\lambda_i = \lambda_u = 3$. The validation RMSE is 0.8554, compared to 1.0335 for the global mean.
+
+All the low-rank models learn the residuals left by this baseline, which serves as the benchmark they must outperform.
 ## Singular value spectrum
 ![Spectrum of the full matrix](reports/figures/spectrum.png)
 ![Spectrum of the dense submatrix](reports/figures/spectrum_dense.png)
@@ -265,3 +330,12 @@ The first two directions can be read as:
 
 The factors found by SGD yield the same predictions even when multiplied by any invertible matrix $Q$ (with $U$ multiplied by $Q$, and $V$ by the inverse of the transpose of $Q$): $UV^T = (UQ)(VQ^{-T})^T$. Consequently, depending on the random seed used, we may end up with entirely different factors that nonetheless produce the same predictions. SVD, by contrast, selects one specific factorization—one with orthogonal columns ordered by $\sigma$—which is always the same.
 
+## Limitations and next steps
+
+- **Random split, not temporal.** Ratings were split at random, so the models fill gaps in the matrix rather than predict future ratings. A split by date would be a harder and more realistic test.
+- **No cold start.** Validation and test rows whose user or movie does not appear in train were removed (3.7% and 3.9% of the rows), so the evaluation says nothing about new users or rarely rated movies, and it is somewhat optimistic.
+- **One hyperparameter at a time.** The search changed one hyperparameter at a time; interactions, such as the best reg for a larger k, were not tested.
+- **RMSE only.** A recommender is judged by the order of its list as much as by the error of each rating; ranking metrics were not measured.
+- **One dataset, one split.** All results come from MovieLens Latest Small and a single split (seed 42). The bootstrap measures the uncertainty due to the test sample, but not the variation across splits.
+
+**Next steps:** a split by date, ranking metrics such as precision@10 and recall@10, and a randomized SVD to speed up Soft-Impute, whose iterations are dominated by a full SVD of the residual matrix (about 0.5 s each).

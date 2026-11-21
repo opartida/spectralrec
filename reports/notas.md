@@ -470,3 +470,5 @@ Los factores que encuentra SGD dan la misma predicción si estos están multipli
 
 2. **¿Por qué una lista de recomendaciones bonita no demuestra que el modelo acierte?**
 Porque lo que importa es lo que el recomendador sea capaz de acertar, es decir, si es capaz de predecir lo que un usuario valoró para una película determinada. Para esto se tiene que testear el recomendador con notas reales que el modelo no vió, de muchos usuarios. Una lista bonita no lo demuestra porque un modelo simple, como el de solo sesgos, también recomendaría clásicos famosos y bien valorados, que parecen buenas recomendaciones para cualquiera. Mirando la lista no se distingue un modelo bueno de uno mediocre.
+
+## Sesión 19
