@@ -39,9 +39,13 @@ The data are not included in this repository: GroupLens distributes them under t
 
 ## Installation and usage
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 
 python -m pytest
+
 ```
 Download and unzip `https://files.grouplens.org/datasets/movielens/ml-latest-small.zip` into `data/raw/`, so that `data/raw/ml-latest-small/ratings.csv` exists.
 
@@ -60,7 +64,7 @@ python scripts/evaluate.py --split test
 python scripts/recommend.py --user-id 17 --top-n 10
 python scripts/interpret.py
 ```
-To reproduce the hyperparameter search, run each file in configs/search/:
+To reproduce the hyperparameter search, run each file in `configs/search/`:
 ```bash
 python scripts/train.py --config <file>
 ```
